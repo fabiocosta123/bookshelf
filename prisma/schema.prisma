@@ -1,0 +1,144 @@
+// MUDE para sqlite:
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Book {
+  id              String   @id @default(cuid())
+  title           String
+  author          String
+  genre           String?
+  year            Int?
+  pages           Int?
+  total_copies    Int      @default(1)
+  available_copies Int     @default(1)
+  rating          Int?     
+  synopsis        String?
+  cover           String?
+  isbn            String?
+  reading_status  ReadingStatus @default(QUERO_LER)
+  
+  // Relações
+  loans           Loan[]
+  conditions      BookCondition[]
+  
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  
+  @@map("books")
+}
+
+model User {
+  id                  String   @id @default(cuid())
+  name                String
+  email               String   @unique
+  phone               String?
+  registration_number String?  @unique
+  user_type           UserType @default(STANDARD)
+  is_active           Boolean  @default(true)
+  
+  // Relações
+  loans          Loan[]
+  notifications  Notification[]
+  
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  
+  @@map("users")
+}
+
+model Loan {
+  id                String   @id @default(cuid())
+  bookId            String   @map("book_id")
+  userId            String   @map("user_id")
+  loan_date         DateTime
+  due_date          DateTime
+  return_date       DateTime?
+  status            LoanStatus @default(ACTIVE)
+  condition_before  BookConditionType?
+  condition_after   BookConditionType?
+  notes             String?
+  
+  // Relações
+  book        Book   @relation(fields: [bookId], references: [id])
+  user        User   @relation(fields: [userId], references: [id])
+  notifications Notification[]
+  
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  @@map("loans")
+}
+
+model BookCondition {
+  id           String   @id @default(cuid())
+  bookId       String   @map("book_id")
+  condition    BookConditionType
+  notes        String?
+  reportedBy   String   @map("reported_by")
+  
+  // Relações
+  book Book @relation(fields: [bookId], references: [id])
+  
+  reportedAt DateTime @default(now()) @map("reported_at")
+  
+  @@map("book_conditions")
+}
+
+model Notification {
+  id              String   @id @default(cuid())
+  userId          String   @map("user_id")
+  title           String
+  message         String
+  type            NotificationType
+  is_read         Boolean  @default(false)
+  relatedLoanId   String?  @map("related_loan_id")
+  
+  // Relações
+  user    User   @relation(fields: [userId], references: [id])
+  loan    Loan?  @relation(fields: [relatedLoanId], references: [id])
+  
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  @@map("notifications")
+}
+
+// Enums
+enum ReadingStatus {
+  QUERO_LER
+  LENDO
+  LIDO
+  PAUSADO
+  ABANDONADO
+}
+
+enum UserType {
+  STANDARD
+  ADMIN
+}
+
+enum LoanStatus {
+  ACTIVE
+  RETURNED
+  OVERDUE
+  CANCELLED
+}
+
+enum BookConditionType {
+  EXCELLENT
+  GOOD
+  FAIR
+  DAMAGED
+  RESTORATION_NEEDED
+}
+
+enum NotificationType {
+  OVERDUE
+  REMINDER
+  SYSTEM
+  RETURN_CONFIRMATION
+}
