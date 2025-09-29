@@ -17,7 +17,7 @@ interface SideBar {
 
 const menuItems = [
   { icon: Home, label: "Dashboard", href: "/dashboard" },
-  { icon: Book, label: "Biblioteca", href: "/library" },
+  { icon: Book, label: "Biblioteca", href: "/books" },
   { icon: Users, label: "Usuários", href: "/users" },
   { icon: ClipboardList, label: "Empréstimos", href: "/loans" },
   { icon: BarChart3, label: "Relatórios", href: "/reports" },

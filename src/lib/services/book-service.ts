@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/database";
-import { Book, ReadingStatus } from "@prisma/client";
+import { ReadingStatus } from "@prisma/client";
 
 export const GENRES = [
   "Literatura Brasileira",
@@ -35,8 +35,8 @@ export class BookService {
     // filtrar por autor ou titulo
     if (filters.search) {
       where.OR = [
-        { title: { contains: filters.search, mode: "insensitive" } },
-        { author: { contains: filters.search, mode: "insensitive" } },
+        { title: { contains: filters.search } },
+        { author: { contains: filters.search} },
       ];
     }
 

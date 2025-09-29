@@ -1,23 +1,34 @@
-// app/books/page.tsx
+// app/books/page.tsx - CORREÇÃO DA ORDEM
 import { BookPlus } from 'lucide-react';
 import Link from 'next/link';
 import { BookCard } from '@/components/books/book-card';
-import { bookService } from '@/lib/services/book-service';
-import { SearchAndFilters } from '@/components/books/search-and-filters';
+import { bookService, GENRES, type BookFilter } from '@/lib/services/book-service';
+import { SearchAndFilter } from '@/components/books/search-and-filter';
+import { ReadingStatus } from '@prisma/client';
 
 export default async function BooksPage({
   searchParams
 }: {
   searchParams: { search?: string; genre?: string; status?: string }
 }) {
-  const filters = {
+  // PRIMEIRO definir os filters
+  const filters: BookFilter = {
     search: searchParams.search,
-    genre: searchParams.genre,
-    readingStatus: searchParams.status
+    // Verificar se o gênero é válido
+    genre: searchParams.genre && GENRES.includes(searchParams.genre as any) 
+      ? searchParams.genre as any 
+      : undefined,
+    // Verificar se o status é válido
+    readingStatus: searchParams.status && [
+      'QUERO_LER', 'LENDO', 'LIDO', 'PAUSADO', 'ABANDONADO'
+    ].includes(searchParams.status)
+      ? searchParams.status as ReadingStatus
+      : undefined
   };
 
+  // DEPOIS buscar os dados
   const [books, genres] = await Promise.all([
-    bookService.getBooks(filters),
+    bookService.getBooks(filters), // ← Agora filters já está definido
     bookService.getGenres()
   ]);
 
@@ -42,7 +53,14 @@ export default async function BooksPage({
       </div>
 
       {/* Busca e Filtros */}
-      <SearchAndFilters genres={genres} initialFilters={filters} />
+      <SearchAndFilter 
+        genres={genres} 
+        initialFilter={{
+          search: searchParams.search,
+          genre: searchParams.genre,
+          status: searchParams.status
+        }} 
+      />
 
       {/* Lista de Livros */}
       {books.length === 0 ? (
