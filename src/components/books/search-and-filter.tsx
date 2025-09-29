@@ -68,7 +68,7 @@ export function SearchAndFilter({
             placeholder="Buscar por título ou autor..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            onKeyPress={(e) => e.key === "Enter" && updateFilters()}
+            onKeyPress={(e) => e.key === "Enter" && updateFilter()}
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
@@ -83,7 +83,7 @@ export function SearchAndFilter({
           </button>
 
           <button
-            onClick={updateFilters}
+            onClick={updateFilter}
             className="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors"
           >
             Buscar
