@@ -60,7 +60,7 @@ export class BookService {
         },
 
         conditions: {
-          orderBy: { reported_at: "desc" },
+          orderBy: { reportedAt: "desc" },
           take: 1,
         },
       },
