@@ -1,4 +1,3 @@
-// components/dashboard/recent-books.tsx - DEVE existir
 'use client';
 
 import Image from 'next/image';
@@ -8,7 +7,7 @@ interface Book {
   id: string;
   title: string;
   author: string;
-  cover?: string;
+  cover?: string | null;
   reading_status: string;
 }
 
