@@ -45,14 +45,14 @@ export function SearchAndFilter({
     if (selectedGenre) params.set("genre", selectedGenre);
     if (selectedStatus) params.set("status", selectedStatus);
 
-    router.push(`/library?${params.toString()}`);
+    router.push(`/books?${params.toString()}`);
   }, [search, selectedGenre, selectedStatus, router]);
 
   const clearFilters = () => {
     setSearch("");
     setSelectedGenre("");
     setSelectedStatus("");
-    router.push("/library");
+    router.push("/books");
   };
 
   const hasActiveFilters = search || selectedGenre || selectedStatus;
