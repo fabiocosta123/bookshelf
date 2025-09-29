@@ -1,4 +1,4 @@
-import { prisma } from '';
+import { prisma } from '../database';
 
 export class DashboardService {
     async getDashboardStats() {
