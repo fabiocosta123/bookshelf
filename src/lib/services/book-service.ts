@@ -36,7 +36,7 @@ export class BookService {
     if (filters.search) {
       where.OR = [
         { title: { contains: filters.search } },
-        { author: { contains: filters.search} },
+        { author: { contains: filters.search } },
       ];
     }
 
@@ -59,6 +59,23 @@ export class BookService {
           include: { user: true },
         },
 
+        conditions: {
+          orderBy: { reportedAt: "desc" },
+          take: 1,
+        },
+      },
+    });
+  }
+
+  // busca livro por id
+  async getBookById(id: string) {
+    return await prisma.book.findUnique({
+      where: { id },
+      include: {
+        loans: {
+          where: { status: "ACTIVE" },
+          include: { user: true },
+        },
         conditions: {
           orderBy: { reportedAt: "desc" },
           take: 1,
