@@ -27,7 +27,7 @@ interface BookCardProps {
   onDelete?: (id: string) => void;
 }
 
-export function BookCard({ book }: BookCardProps) {
+export function BookCard({ book, onDelete }: BookCardProps) {
   const router = useRouter();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -53,21 +53,31 @@ export function BookCard({ book }: BookCardProps) {
       const response = await fetch(`/api/books/${book.id}`, {
         method: "DELETE",
       });
+      
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || "Erro ao excluir o livro");
-
-        // recarrega pagina para atualizar lista
-        router.refresh();
       }
+
+      // Chama função pai para atualizar o estado (se existir)
+      if (onDelete) {
+        onDelete(book.id);
+      } else {
+        // Se não tiver onDelete, recarrega a página
+        window.location.reload();
+      }
+      
     } catch (error) {
-      console.log("Erro ao excluir livro:", error);
+      console.error("Erro ao excluir livro:", error);
       alert("Erro ao excluir o livro. Tente novamente mais tarde.");
     } finally {
       setIsDeleting(false);
       setIsDeleteModalOpen(false);
     }
   };
+
+  // Verifica se o livro pode ser excluído (não tem empréstimos ativos)
+  const canDelete = book.loans.length === 0;
 
   return (
     <>
@@ -176,8 +186,13 @@ export function BookCard({ book }: BookCardProps) {
 
             <button
               onClick={() => setIsDeleteModalOpen(true)}
-              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-              title="Excluir livro"
+              className={`p-2 rounded-lg transition-colors ${
+                canDelete 
+                  ? "text-red-600 hover:bg-red-50" 
+                  : "text-gray-400 cursor-not-allowed"
+              }`}
+              title={canDelete ? "Excluir livro" : "Não pode ser excluído - possui empréstimos ativos"}
+              disabled={!canDelete}
             >
               <Trash2 className="h-4 w-4" />
             </button>
@@ -191,9 +206,10 @@ export function BookCard({ book }: BookCardProps) {
           )}
         </div>
       </div>
+
       {/* Modal de Confirmação */}
       <DeleteConfirmation
-        isOpen={isDeleteModalOpen}
+        isOpen={isDeleteModalOpen && canDelete}
         onClose={() => setIsDeleteModalOpen(false)}
         onConfirm={handleDelete}
         bookTitle={book.title}
