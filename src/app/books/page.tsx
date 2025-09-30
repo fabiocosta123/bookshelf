@@ -1,4 +1,3 @@
-// app/books/page.tsx - CORREÇÃO DA ORDEM
 import { BookPlus } from 'lucide-react';
 import Link from 'next/link';
 import { BookCard } from '@/components/books/book-card';
@@ -11,7 +10,7 @@ export default async function BooksPage({
 }: {
   searchParams: { search?: string; genre?: string; status?: string }
 }) {
-  // PRIMEIRO definir os filters
+  // definir os filters
   const filters: BookFilter = {
     search: searchParams.search,
     // Verificar se o gênero é válido
