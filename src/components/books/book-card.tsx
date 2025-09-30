@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { DeleteConfirmation } from "./delete-confirmation";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 interface BookCardProps {
   book: {
@@ -53,23 +54,30 @@ export function BookCard({ book, onDelete }: BookCardProps) {
       const response = await fetch(`/api/books/${book.id}`, {
         method: "DELETE",
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || "Erro ao excluir o livro");
       }
 
-      // Chama função pai para atualizar o estado (se existir)
-      if (onDelete) {
-        onDelete(book.id);
-      } else {
-        // Se não tiver onDelete, recarrega a página
+      // Mensagem de sucesso elegante!
+      toast.success("Livro excluído com sucesso!", {
+        description: `"${book.title}" foi removido da biblioteca.`,
+        duration: 3000,
+      });
+
+      // Recarrega a página após um breve delay para ver a mensagem
+      setTimeout(() => {
         window.location.reload();
-      }
-      
+      }, 2000);
     } catch (error) {
       console.error("Erro ao excluir livro:", error);
-      alert("Erro ao excluir o livro. Tente novamente mais tarde.");
+
+      // Mensagem de erro elegante!
+      toast.error("Erro ao excluir livro", {
+        description: "Tente novamente mais tarde.",
+        duration: 4000,
+      });
     } finally {
       setIsDeleting(false);
       setIsDeleteModalOpen(false);
@@ -187,11 +195,15 @@ export function BookCard({ book, onDelete }: BookCardProps) {
             <button
               onClick={() => setIsDeleteModalOpen(true)}
               className={`p-2 rounded-lg transition-colors ${
-                canDelete 
-                  ? "text-red-600 hover:bg-red-50" 
+                canDelete
+                  ? "text-red-600 hover:bg-red-50"
                   : "text-gray-400 cursor-not-allowed"
               }`}
-              title={canDelete ? "Excluir livro" : "Não pode ser excluído - possui empréstimos ativos"}
+              title={
+                canDelete
+                  ? "Excluir livro"
+                  : "Não pode ser excluído - possui empréstimos ativos"
+              }
               disabled={!canDelete}
             >
               <Trash2 className="h-4 w-4" />
