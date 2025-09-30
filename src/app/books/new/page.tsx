@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Save, BookOpen, Search } from "lucide-react";
 import Link from "next/link";
-import { bookService, GENRES } from "@/lib/services/book-service";
+import { GENRES } from "@/lib/services/book-service";
 import { ReadingStatus } from "@prisma/client";
 
 export default function NewBookPage() {
@@ -79,7 +79,7 @@ export default function NewBookPage() {
     setIsLoading(true);
     try {
       console.log("Buscando livro por ISBN:", formData.isbn);
-      // TODO: Integrar com Google Books API
+      // Integrar com Google Books API
     } catch (error) {
       console.error("Erro ao buscar livro:", error);
     } finally {
@@ -94,28 +94,33 @@ export default function NewBookPage() {
       return;
     }
 
+    console.log("📝 Enviando dados:", formData);
     setIsLoading(true);
 
     try {
-      await bookService.createBook({
-        title: formData.title,
-        author: formData.author,
-        genre: formData.genre || undefined,
-        year: formData.year ? Number(formData.year) : undefined,
-        pages: formData.pages ? Number(formData.pages) : undefined,
-        total_copies: Number(formData.total_copies),
-        rating: formData.rating ? Number(formData.rating) : undefined,
-        synopsis: formData.synopsis || undefined,
-        cover: formData.cover || undefined,
-        reading_status: formData.reading_status,
-        isbn: formData.isbn || undefined,
+      const response = await fetch('/api/books', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
       });
 
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Erro ao salvar livro');
+      }
+
+      const result = await response.json();
+      console.log("✅ Livro salvo com sucesso:", result);
+      
       router.push("/books");
       router.refresh();
     } catch (error) {
-      console.error("Erro ao criar livro:", error);
-      setErrors({ submit: "Erro ao salvar livro. Tente novamente." });
+      console.error("❌ Erro ao criar livro:", error);
+      setErrors({ 
+        submit: error instanceof Error ? error.message : "Erro ao salvar livro. Tente novamente." 
+      });
     } finally {
       setIsLoading(false);
     }
