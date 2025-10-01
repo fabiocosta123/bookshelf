@@ -5,6 +5,12 @@ import { Button } from "@/components/ui/button";
 
 interface HeaderProps {
   onMenuClick: () => void;
+  user?: {
+    name: string;
+    email: string;
+    image?: string;
+    role: string;
+  }
 }
 
 export function Header({ onMenuClick }: HeaderProps) {

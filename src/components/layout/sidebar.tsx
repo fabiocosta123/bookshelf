@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 interface SideBar {
   isOpen: boolean;
   onClose: () => void;
+  userRole?: string;
 }
 
 const menuItems = [
