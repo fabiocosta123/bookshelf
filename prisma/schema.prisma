@@ -1,4 +1,3 @@
-// MUDE para sqlite:
 generator client {
   provider = "prisma-client-js"
 }
@@ -9,14 +8,14 @@ datasource db {
 }
 
 model Book {
-  id              String   @id @default(cuid())
+  id              String        @id @default(cuid())
   title           String
   author          String
   genre           String?
   year            Int?
   pages           Int?
-  total_copies    Int      @default(1)
-  available_copies Int     @default(1)
+  total_copies    Int           @default(1)
+  available_copies Int          @default(1)
   rating          Int?     
   synopsis        String?
   cover           String?
@@ -26,124 +25,98 @@ model Book {
   // Relações
   loans           Loan[]
   conditions      BookCondition[]
+  reviews         Review[]
+  createdBy       User?         @relation("BookCreator", fields: [createdById], references: [id])
+  createdById     String?
   
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
   
   @@map("books")
 }
 
 model User {
-  id                  String   @id @default(cuid())
+  id                  String        @id @default(cuid())
   name                String
-  email               String   @unique
+  email               String        @unique
+  emailVerified       DateTime?
+  image               String?
   phone               String?
-  registration_number String?  @unique
-  user_type           UserType @default(STANDARD)
-  is_active           Boolean  @default(true)
+  registration_number String?       @unique
+  role                UserRole      @default(CLIENT)
+  status              UserStatus    @default(ACTIVE)
   
-  // Relações
-  loans          Loan[]
-  notifications  Notification[]
+  // Relações de autenticação
+  accounts            Account[]
+  sessions            Session[]
   
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  // Relações da aplicação
+  loans               Loan[]
+  notifications       Notification[]
+  reviews             Review[]
+  createdBooks        Book[]        @relation("BookCreator")
+  
+  createdAt           DateTime      @default(now()) @map("created_at")
+  updatedAt           DateTime      @updatedAt @map("updated_at")
   
   @@map("users")
 }
 
 model Loan {
-  id                String   @id @default(cuid())
-  bookId            String   @map("book_id")
-  userId            String   @map("user_id")
+  id                String              @id @default(cuid())
+  bookId            String              @map("book_id")
+  userId            String              @map("user_id")
   loan_date         DateTime
   due_date          DateTime
   return_date       DateTime?
-  status            LoanStatus @default(ACTIVE)
+  status            LoanStatus          @default(ACTIVE)
   condition_before  BookConditionType?
   condition_after   BookConditionType?
   notes             String?
   
   // Relações
-  book        Book   @relation(fields: [bookId], references: [id])
-  user        User   @relation(fields: [userId], references: [id])
-  notifications Notification[]
+  book              Book                @relation(fields: [bookId], references: [id])
+  user              User                @relation(fields: [userId], references: [id])
+  notifications     Notification[]
   
-  createdAt DateTime @default(now()) @map("created_at")
+  createdAt         DateTime            @default(now()) @map("created_at")
   
   @@map("loans")
 }
 
 model BookCondition {
-  id           String   @id @default(cuid())
-  bookId       String   @map("book_id")
+  id           String              @id @default(cuid())
+  bookId       String              @map("book_id")
   condition    BookConditionType
   notes        String?
-  reportedBy   String   @map("reported_by")
+  reportedBy   String              @map("reported_by")
   
   // Relações
-  book Book @relation(fields: [bookId], references: [id])
+  book         Book                @relation(fields: [bookId], references: [id])
   
-  reportedAt DateTime @default(now()) @map("reported_at")
+  reportedAt   DateTime            @default(now()) @map("reported_at")
   
   @@map("book_conditions")
 }
 
 model Notification {
-  id              String   @id @default(cuid())
-  userId          String   @map("user_id")
+  id              String              @id @default(cuid())
+  userId          String              @map("user_id")
   title           String
   message         String
   type            NotificationType
-  is_read         Boolean  @default(false)
-  relatedLoanId   String?  @map("related_loan_id")
+  is_read         Boolean             @default(false)
+  relatedLoanId   String?             @map("related_loan_id")
   
   // Relações
-  user    User   @relation(fields: [userId], references: [id])
-  loan    Loan?  @relation(fields: [relatedLoanId], references: [id])
+  user            User                @relation(fields: [userId], references: [id])
+  loan            Loan?               @relation(fields: [relatedLoanId], references: [id])
   
-  createdAt DateTime @default(now()) @map("created_at")
+  createdAt       DateTime            @default(now()) @map("created_at")
   
   @@map("notifications")
 }
 
-// Enums
-enum ReadingStatus {
-  QUERO_LER
-  LENDO
-  LIDO
-  PAUSADO
-  ABANDONADO
-}
-
-enum UserType {
-  STANDARD
-  ADMIN
-}
-
-enum LoanStatus {
-  ACTIVE
-  RETURNED
-  OVERDUE
-  CANCELLED
-}
-
-enum BookConditionType {
-  EXCELLENT
-  GOOD
-  FAIR
-  DAMAGED
-  RESTORATION_NEEDED
-}
-
-enum NotificationType {
-  OVERDUE
-  REMINDER
-  SYSTEM
-  RETURN_CONFIRMATION
-}
-
-// Adicione ao seu schema existente
 model Account {
   id                String  @id @default(cuid())
   userId            String
@@ -174,28 +147,6 @@ model Session {
   @@map("sessions")
 }
 
-model User {
-  id            String   @id @default(cuid())
-  name          String
-  email         String   @unique
-  emailVerified DateTime?
-  image         String?
-  role          UserRole @default(CLIENT)
-  status        UserStatus @default(ACTIVE)
-  
-  // Relacionamentos
-  accounts      Account[]
-  sessions      Session[]
-  loans         Loan[]
-  reviews       Review[]
-  createdBooks  Book[]    @relation("BookCreator")
-  
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  @@map("users")
-}
-
 model VerificationToken {
   identifier String
   token      String   @unique
@@ -205,20 +156,6 @@ model VerificationToken {
   @@map("verification_tokens")
 }
 
-// Adicione esses enums
-enum UserRole {
-  CLIENT
-  EMPLOYEE
-  ADMIN
-}
-
-enum UserStatus {
-  ACTIVE
-  INACTIVE
-  SUSPENDED
-}
-
-// Model Review (para observações dos clientes)
 model Review {
   id          String   @id @default(cuid())
   content     String
@@ -235,4 +172,47 @@ model Review {
 
   @@unique([bookId, userId, page])
   @@map("reviews")
+}
+
+// Enums
+enum ReadingStatus {
+  QUERO_LER
+  LENDO
+  LIDO
+  PAUSADO
+  ABANDONADO
+}
+
+enum UserRole {
+  CLIENT      // = STANDARD (usuário comum)
+  EMPLOYEE    // funcionário
+  ADMIN       // administrador
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum LoanStatus {
+  ACTIVE
+  RETURNED
+  OVERDUE
+  CANCELLED
+}
+
+enum BookConditionType {
+  EXCELLENT
+  GOOD
+  FAIR
+  DAMAGED
+  RESTORATION_NEEDED
+}
+
+enum NotificationType {
+  OVERDUE
+  REMINDER
+  SYSTEM
+  RETURN_CONFIRMATION
 }
