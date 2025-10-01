@@ -9,29 +9,52 @@ import { ReadingStatus } from '@prisma/client';
 import { useAuth } from '@/hooks/use-auth';
 import { useRequireAuth } from '@/hooks/use-require-auth';
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 
-export default function BooksPage({
-  searchParams
-}: {
-  searchParams: { search?: string; genre?: string; status?: string }
-}) {
-  useRequireAuth(); // Protege a página
+// Definir tipo para os livros
+interface Book {
+  id: string;
+  title: string;
+  author: string;
+  genre?: string | null;
+  year?: number | null;
+  pages?: number | null;
+  total_copies: number;
+  available_copies: number;
+  rating?: number | null;
+  cover?: string | null;
+  reading_status: string;
+  loans: Array<{
+    id: string;
+    user: { name: string };
+  }>;
+}
+
+export default function BooksPage() {
+  useRequireAuth();
   const { isClient } = useAuth();
   
-  const [books, setBooks] = useState([]);
-  const [genres, setGenres] = useState([]);
+  // Usar useSearchParams
+  const searchParams = useSearchParams();
+  const search = searchParams.get('search');
+  const genre = searchParams.get('genre');
+  const status = searchParams.get('status');
+  
+  // Tipar os estados
+  const [books, setBooks] = useState<Book[]>([]);
+  const [genres, setGenres] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Definir os filters
   const filters: BookFilter = {
-    search: searchParams.search,
-    genre: searchParams.genre && GENRES.includes(searchParams.genre as any) 
-      ? searchParams.genre as any 
+    search: search || undefined,
+    genre: genre && GENRES.includes(genre as any) 
+      ? genre as any 
       : undefined,
-    readingStatus: searchParams.status && [
+    readingStatus: status && [
       'QUERO_LER', 'LENDO', 'LIDO', 'PAUSADO', 'ABANDONADO'
-    ].includes(searchParams.status)
-      ? searchParams.status as ReadingStatus
+    ].includes(status)
+      ? status as ReadingStatus
       : undefined
   };
 
@@ -52,15 +75,7 @@ export default function BooksPage({
     }
 
     loadData();
-  }, [searchParams.search, searchParams.genre, searchParams.status]);
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
+  }, [search, genre, status]);
 
   return (
     <div>
@@ -85,13 +100,13 @@ export default function BooksPage({
         )}
       </div>
 
-      {/* Busca e Filtros */}
+      {/* Busca e Filtros - CORRIGIDO: usar search, genre, status em vez de params */}
       <SearchAndFilter 
         genres={genres} 
         initialFilter={{
-          search: searchParams.search,
-          genre: searchParams.genre,
-          status: searchParams.status
+          search: search || undefined, // ← CORREÇÃO AQUI
+          genre: genre || undefined,   // ← CORREÇÃO AQUI  
+          status: status || undefined  // ← CORREÇÃO AQUI
         }} 
       />
 
@@ -130,7 +145,7 @@ export default function BooksPage({
               <BookCard 
                 key={book.id} 
                 book={book} 
-                showAdminActions={!isClient} // ← AQUI ESTÁ A CORREÇÃO!
+                showAdminActions={!isClient}
               />
             ))}
           </div>

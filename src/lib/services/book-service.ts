@@ -1,134 +1,64 @@
-import { prisma } from "@/lib/database";
-import { ReadingStatus } from "@prisma/client";
+// Client-side service - usa fetch para APIs
+export const bookService = {
+  async getBooks(filters?: any) {
+    const params = new URLSearchParams();
+    
+    if (filters?.search) params.append('search', filters.search);
+    if (filters?.genre) params.append('genre', filters.genre);
+    if (filters?.readingStatus) params.append('readingStatus', filters.readingStatus);
+
+    const response = await fetch(`/api/books?${params.toString()}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      cache: 'no-store'
+    });
+
+    if (!response.ok) {
+      throw new Error('Erro ao buscar livros');
+    }
+
+    return response.json();
+  },
+
+  async getGenres() {
+    const response = await fetch('/api/books/genres', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      cache: 'no-store'
+    });
+
+    if (!response.ok) {
+      throw new Error('Erro ao buscar gêneros');
+    }
+
+    return response.json();
+  },
+};
+
+// Manter os tipos
+export type BookFilter = {
+  search?: string;
+  genre?: string;
+  readingStatus?: string;
+};
 
 export const GENRES = [
-  "Literatura Brasileira",
-  "Ficção Científica",
-  "Realismo Mágico",
-  "Ficção",
-  "Fantasia",
-  "Romance",
-  "Biografia",
-  "História",
-  "Autoajuda",
-  "Tecnologia",
-  "Programação",
-  "Negócios",
-  "Psicologia",
-  "Filosofia",
-  "Poesia",
+  'Romance',
+  'Ficção Científica',
+  'Fantasia',
+  'Suspense',
+  'Terror',
+  'Biografia',
+  'História',
+  'Autoajuda',
+  'Negócios',
+  'Tecnologia',
+  'Programação',
+  'Literatura Brasileira',
+  'Infantil',
+  'Young Adult'
 ] as const;
-
-export type Genre = (typeof GENRES)[number];
-
-export interface BookFilter {
-  search?: string;
-  genre?: Genre;
-  readingStatus?: ReadingStatus;
-  author?: string;
-}
-
-export class BookService {
-  async getBooks(filters: BookFilter = {}) {
-    const where: any = {};
-
-    // filtrar por autor ou titulo
-    if (filters.search) {
-      where.OR = [
-        { title: { contains: filters.search } },
-        { author: { contains: filters.search } },
-      ];
-    }
-
-    // filtrar por genero
-    if (filters.genre) {
-      where.genre = filters.genre;
-    }
-
-    // filtrar por status de leitura
-    if (filters.readingStatus) {
-      where.reading_status = filters.readingStatus;
-    }
-
-    return await prisma.book.findMany({
-      where,
-      orderBy: { title: "asc" },
-      include: {
-        loans: {
-          where: { status: "ACTIVE" },
-          include: { user: true },
-        },
-
-        conditions: {
-          orderBy: { reportedAt: "desc" },
-          take: 1,
-        },
-      },
-    });
-  }
-
-  // busca livro por id
-  async getBookById(id: string) {
-    return await prisma.book.findUnique({
-      where: { id },
-      include: {
-        loans: {
-          where: { status: "ACTIVE" },
-          include: { user: true },
-        },
-        conditions: {
-          orderBy: { reportedAt: "desc" },
-          take: 1,
-        },
-      },
-    });
-  }
-
-  async getGenres(): Promise<string[]> {
-    const books = await prisma.book.findMany({
-      select: { genre: true },
-      distinct: ["genre"],
-    });
-
-    return books
-      .map((book) => book.genre)
-      .filter((genre): genre is string => !!genre)
-      .sort();
-  }
-
-  async createBook(data: {
-    title: string;
-    author: string;
-    genre?: string;
-    year?: number;
-    pages?: number;
-    total_copies?: number;
-    rating?: number;
-    synopsis?: string;
-    cover?: string;
-    reading_status?: ReadingStatus;
-    isbn?: string;
-  }) {
-    return await prisma.book.create({
-      data: {
-        ...data,
-        available_copies: data.total_copies || 1,
-      },
-    });
-  }
-
-  async updateBook(id: string, data: any) {
-    return await prisma.book.update({
-      where: { id },
-      data,
-    });
-  }
-
-  async deleteBook(id: string) {
-    return await prisma.book.delete({
-      where: { id },
-    });
-  }
-}
-
-export const bookService = new BookService();

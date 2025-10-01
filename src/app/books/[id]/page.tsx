@@ -1,236 +1,219 @@
-import { notFound } from "next/navigation";
-import { ArrowLeft, Edit, Users, Calendar, Star, BookOpen } from "lucide-react";
-import Link from "next/link";
-import { bookService } from "@/lib/services/book-service";
+'use client';
 
-interface BookDetailPageProps {
-  params: { id: string };
+import { useParams, useRouter } from 'next/navigation';
+import { useAuth } from '@/hooks/use-auth';
+import { useRequireAuth } from '@/hooks/use-require-auth';
+import { useEffect, useState } from 'react';
+import { Book, ArrowLeft, Star, Users, Calendar } from 'lucide-react';
+import Link from 'next/link';
+
+interface BookDetail {
+  id: string;
+  title: string;
+  author: string;
+  genre?: string | null;
+  year?: number | null;
+  pages?: number | null;
+  total_copies: number;
+  available_copies: number;
+  rating?: number | null;
+  synopsis?: string | null;
+  cover?: string | null;
+  reading_status: string;
+  loans: Array<{
+    id: string;
+    user: { name: string };
+  }>;
 }
 
-export default async function BookDetailPage({ params }: BookDetailPageProps) {
-  const book = await bookService.getBookById(params.id);
+export default function BookDetailPage() {
+  useRequireAuth();
+  const { isClient } = useAuth();
+  const params = useParams();
+  const router = useRouter();
+  
+  const [book, setBook] = useState<BookDetail | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  if (!book) {
-    notFound();
+  useEffect(() => {
+    async function loadBook() {
+      try {
+        const response = await fetch(`/api/books/${params.id}`);
+        if (!response.ok) {
+          if (response.status === 404) {
+            router.push('/404');
+            return;
+          }
+          throw new Error('Erro ao carregar livro');
+        }
+        const bookData = await response.json();
+        setBook(bookData);
+      } catch (error) {
+        console.error('Erro ao carregar livro:', error);
+        router.push('/books');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadBook();
+  }, [params.id, router]);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
   }
 
-  const getStatusColor = (status: string) => {
-    const colors = {
-      QUERO_LER: "bg-blue-100 text-blue-800 border-blue-200",
-      LENDO: "bg-yellow-100 text-yellow-800 border-yellow-200",
-      LIDO: "bg-green-100 text-green-800 border-green-200",
-      ABANDONADO: "bg-red-100 text-red-800 border-red-200",
-      PAUSADO: "bg-orange-100 text-orange-800 border-orange-200",
-    };
+  if (!book) {
     return (
-      colors[status as keyof typeof colors] ||
-      "bg-gray-100 text-gray-800 border-gray-200"
-    );
-  };
-
-  const getStatusText = (status: string) => {
-    const texts = {
-      QUERO_LER: "Quero Ler",
-      LENDO: "Lendo",
-      LIDO: "Lido",
-      ABANDONADO: "Abandonado",
-      PAUSADO: "Pausado",
-    };
-    return texts[status as keyof typeof texts] || status;
-  };
-
-  return (
-    <div>
-      {/* Header com navegação */}
-      <div className="flex items-center justify-between mb-8">
-        <Link
-          href="/books"
-          className="flex items-center text-gray-600 hover:text-gray-800 transition-colors"
-        >
-          <ArrowLeft className="h-5 w-5 mr-2" />
-          Voltar para Biblioteca
-        </Link>
-
-        <Link
-          href={`/books/${book.id}/edit`}
-          className="flex items-center text-white bg-green-600 px-4 py-2 hover:text-green-700 transition-colors font-medium"
-        >
-          <Edit className="h-4 w-4 mr-2" />
+      <div className="text-center py-16">
+        <h1 className="text-2xl font-bold text-gray-900 mb-4">Livro não encontrado</h1>
+        <Link href="/books" className="text-blue-600 hover:text-blue-700">
+          Voltar para a biblioteca
         </Link>
       </div>
+    );
+  }
 
-      <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
-        <div className="md:flex">
-          {/* Coluna da esquerda - Capa e informações básicas */}
-          <div className="md:w-1/3 p-8 border-r border-gray-200">
-            <div className="flex flex-col items-center">
-              {/* Capa do livro */}
-              <div className="w-48 h-64 bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden mb-6">
-                {book.cover ? (
-                  <img
-                    src={book.cover}
-                    alt={book.title}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="text-gray-400 text-center p-4">
-                    <div className="text-6xl mb-2">📚</div>
-                    <div className="text-sm">Sem capa</div>
-                  </div>
-                )}
+  const isAvailable = book.available_copies > 0;
+
+  return (
+    <div className="max-w-4xl mx-auto">
+      {/* Header */}
+      <div className="mb-6">
+        <Link 
+          href="/books"
+          className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-4"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Voltar para Biblioteca
+        </Link>
+        
+        <h1 className="text-3xl font-bold text-gray-900">{book.title}</h1>
+        <p className="text-gray-600 mt-2">por {book.author}</p>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Capa e Informações Básicas */}
+        <div className="lg:col-span-1">
+          <div className="bg-white rounded-lg shadow-sm border p-6">
+            <div className="aspect-[3/4] bg-gray-200 rounded-lg flex items-center justify-center mb-4">
+              {book.cover ? (
+                <img
+                  src={book.cover}
+                  alt={book.title}
+                  className="w-full h-full object-cover rounded-lg"
+                />
+              ) : (
+                <div className="text-gray-400 text-center">
+                  <Book className="h-16 w-16 mx-auto mb-2" />
+                  <div className="text-sm">Sem capa</div>
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex justify-between">
+                <span className="text-gray-600">Disponibilidade:</span>
+                <span className={`font-medium ${
+                  isAvailable ? 'text-green-600' : 'text-red-600'
+                }`}>
+                  {isAvailable ? `${book.available_copies} disponível` : 'Indisponível'}
+                </span>
               </div>
 
-              {/* Informações rápidas */}
-              <div className="w-full space-y-4">
-                {/* Status */}
-                <div className="text-center">
-                  <span
-                    className={`px-3 py-1 text-sm font-medium rounded-full border ${getStatusColor(
-                      book.reading_status
-                    )}`}
-                  >
-                    {getStatusText(book.reading_status)}
+              {book.rating && (
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Avaliação:</span>
+                  <span className="flex items-center text-yellow-600">
+                    <Star className="h-4 w-4 fill-current mr-1" />
+                    {book.rating}/5
                   </span>
                 </div>
+              )}
 
-                {/* Disponibilidade */}
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-900">
-                    {book.available_copies} / {book.total_copies}
-                  </div>
-                  <div className="text-sm text-gray-600">
-                    cópias disponíveis
-                  </div>
+              {book.loans.length > 0 && (
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Empréstimos ativos:</span>
+                  <span className="text-orange-600">{book.loans.length}</span>
                 </div>
-
-                {/* Rating */}
-                {book.rating && (
-                  <div className="text-center">
-                    <div className="flex items-center justify-center space-x-1">
-                      <Star className="h-5 w-5 text-yellow-400 fill-current" />
-                      <span className="font-semibold text-gray-900">
-                        {book.rating}
-                      </span>
-                      <span className="text-gray-600">/5</span>
-                    </div>
-                    <div className="text-sm text-gray-600">avaliação</div>
-                  </div>
-                )}
-              </div>
+              )}
             </div>
           </div>
+        </div>
 
-          {/* Coluna da direita - Informações detalhadas */}
-          <div className="md:w-2/3 p-8">
-            {/* Título e autor */}
-            <div className="mb-6">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                {book.title}
-              </h1>
-              <p className="text-xl text-gray-600">por {book.author}</p>
-            </div>
-
-            {/* Metadados em grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        {/* Detalhes do Livro */}
+        <div className="lg:col-span-2">
+          <div className="bg-white rounded-lg shadow-sm border p-6">
+            <h2 className="text-xl font-semibold mb-4">Detalhes do Livro</h2>
+            
+            <div className="grid grid-cols-2 gap-4 mb-6">
               {book.genre && (
-                <div className="flex items-center">
-                  <BookOpen className="h-5 w-5 text-gray-400 mr-3" />
-                  <div>
-                    <div className="text-sm text-gray-600">Gênero</div>
-                    <div className="font-medium">{book.genre}</div>
-                  </div>
+                <div>
+                  <span className="text-gray-600">Gênero:</span>
+                  <p className="font-medium">{book.genre}</p>
                 </div>
               )}
-
+              
               {book.year && (
-                <div className="flex items-center">
-                  <Calendar className="h-5 w-5 text-gray-400 mr-3" />
-                  <div>
-                    <div className="text-sm text-gray-600">Ano</div>
-                    <div className="font-medium">{book.year}</div>
-                  </div>
+                <div>
+                  <span className="text-gray-600">Ano:</span>
+                  <p className="font-medium">{book.year}</p>
                 </div>
               )}
-
+              
               {book.pages && (
-                <div className="flex items-center">
-                  <BookOpen className="h-5 w-5 text-gray-400 mr-3" />
-                  <div>
-                    <div className="text-sm text-gray-600">Páginas</div>
-                    <div className="font-medium">{book.pages}</div>
-                  </div>
+                <div>
+                  <span className="text-gray-600">Páginas:</span>
+                  <p className="font-medium">{book.pages}</p>
                 </div>
               )}
-
-              {book.isbn && (
-                <div className="flex items-center">
-                  <BookOpen className="h-5 w-5 text-gray-400 mr-3" />
-                  <div>
-                    <div className="text-sm text-gray-600">ISBN</div>
-                    <div className="font-medium font-mono">{book.isbn}</div>
-                  </div>
-                </div>
-              )}
+              
+              <div>
+                <span className="text-gray-600">Status:</span>
+                <p className="font-medium capitalize">
+                  {book.reading_status.toLowerCase().replace('_', ' ')}
+                </p>
+              </div>
             </div>
 
-            {/* Sinopse */}
             {book.synopsis && (
               <div className="mb-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                  Sinopse
-                </h3>
+                <h3 className="text-lg font-semibold mb-2">Sinopse</h3>
                 <p className="text-gray-700 leading-relaxed">{book.synopsis}</p>
               </div>
             )}
 
-            {/* Empréstimos ativos */}
-            {book.loans.length > 0 && (
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
-                  <Users className="h-5 w-5 mr-2" />
-                  Empréstimos Ativos ({book.loans.length})
-                </h3>
-                <div className="space-y-2">
-                  {book.loans.map((loan) => (
-                    <div
-                      key={loan.id}
-                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                    >
-                      <div>
-                        <div className="font-medium">{loan.user.name}</div>
-                        <div className="text-sm text-gray-600">
-                          Emprestado em{" "}
-                          {new Date(loan.loan_date).toLocaleDateString("pt-BR")}
-                        </div>
-                      </div>
-                      <div className="text-sm text-gray-600">
-                        Devolução:{" "}
-                        {new Date(loan.due_date).toLocaleDateString("pt-BR")}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Estado de conservação */}
-            {book.conditions && book.conditions.length > 0 && (
-              <div className="mt-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                  Estado de Conservação
-                </h3>
-                <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <div className="font-medium capitalize">
-                    {book.conditions[0].condition.toLowerCase()}
-                  </div>
-                  {book.conditions[0].notes && (
-                    <div className="text-sm text-gray-700 mt-1">
-                      {book.conditions[0].notes}
-                    </div>
+            {/* Ações */}
+            <div className="flex space-x-4 pt-6 border-t border-gray-200">
+              {isClient ? (
+                <>
+                  <button className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                    Fazer Observação
+                  </button>
+                  {isAvailable && (
+                    <button className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors">
+                      Solicitar Empréstimo
+                    </button>
                   )}
-                </div>
-              </div>
-            )}
+                </>
+              ) : (
+                <>
+                  <Link
+                    href={`/books/${book.id}/edit`}
+                    className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                  >
+                    Editar Livro
+                  </Link>
+                  <button className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors">
+                    Excluir Livro
+                  </button>
+                </>
+              )}
+            </div>
           </div>
         </div>
       </div>

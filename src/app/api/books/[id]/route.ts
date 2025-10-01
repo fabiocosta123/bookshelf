@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { bookService } from "@/lib/services/book-service";
+import { bookServiceServer, BookServiceServer } from "@/lib/services/book-service-server";
 import { ReadingStatus } from "@prisma/client";
 
 interface RouteParams {
@@ -11,7 +11,7 @@ interface RouteParams {
 // GET /api/books/:id => buscar um livro pelo ID
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
-    const book = await bookService.getBookById(params.id);
+    const book = await bookServiceServer.getBookById(params.id);
 
     if (!book) {
       return NextResponse.json(
@@ -57,7 +57,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    const book = await bookService.updateBook(params.id, {
+    const book = await bookServiceServer.updateBook(params.id, {
       title,
       author,
       genre,
@@ -86,7 +86,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
     // Verificar se o livro existe
-    const book = await bookService.getBookById(params.id);
+    const book = await bookServiceServer.getBookById(params.id);
 
     if (!book) {
       return NextResponse.json(
@@ -96,7 +96,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     }
 
     // Excluir o livro
-    await bookService.deleteBook(params.id);
+    await bookServiceServer.deleteBook(params.id);
 
     return NextResponse.json(
       {

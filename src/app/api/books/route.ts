@@ -1,80 +1,60 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { bookService } from '@/lib/services/book-service';
-import { ReadingStatus } from '@prisma/client';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
 
-interface RouteParams {
-  params: { id: string };
-}
-
-
-// Criar Livros
-export async function POST(request: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
-    const body = await request.json();
-    
-    const {
-      title,
-      author,
-      genre,
-      year,
-      pages,
-      total_copies,
-      rating,
-      synopsis,
-      cover,
-      reading_status,
-      isbn
-    } = body;
+    const session = await getServerSession(authOptions);
 
-    // Validação básica
-    if (!title || !author) {
-      return NextResponse.json(
-        { error: 'Título e autor são obrigatórios' },
-        { status: 400 }
-      );
+    if (!session) {
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
 
-    const book = await bookService.createBook({
-      title,
-      author,
-      genre,
-      year: year ? Number(year) : undefined,
-      pages: pages ? Number(pages) : undefined,
-      total_copies: Number(total_copies) || 1,
-      rating: rating ? Number(rating) : undefined,
-      synopsis,
-      cover,
-      reading_status: reading_status as ReadingStatus,
-      isbn
+    const { searchParams } = new URL(request.url);
+    const search = searchParams.get('search');
+    const genre = searchParams.get('genre');
+    const readingStatus = searchParams.get('readingStatus');
+
+    // Construir where clause
+    const where: any = {};
+
+    if (search) {
+      where.OR = [
+        { title: { contains: search } },
+        { author: { contains: search } },
+      ];
+    }
+
+    if (genre) {
+      where.genre = genre;
+    }
+
+    if (readingStatus) {
+      where.reading_status = readingStatus;
+    }
+
+    const books = await prisma.book.findMany({
+      where,
+      orderBy: { title: 'asc' },
+      include: {
+        loans: {
+          where: { status: 'ACTIVE' },
+          include: {
+            user: {
+              select: { name: true }
+            }
+          }
+        }
+      }
     });
 
-    return NextResponse.json(book, { status: 201 });
-    
+    return NextResponse.json(books);
   } catch (error) {
-    console.error('Erro na API:', error);
+    console.error('Erro ao buscar livros:', error);
     return NextResponse.json(
       { error: 'Erro interno do servidor' },
       { status: 500 }
     );
   }
 }
-
-// GET /api/books/
-export async function GET(request: NextRequest, { params }: RouteParams) {
-    try {
-        const book = await bookService.getBookById(params.id);
-
-        if (!book) {
-            return NextResponse.json({ error: "Livro não encontrado" }, { status: 404 });
-        }
-
-        return NextResponse.json(book, { status: 200 });
-    } catch (error) {
-        console.error("Erro ao buscar livro:", error);
-        return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 });
-    } 
-}
-
-
-
-
