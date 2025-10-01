@@ -142,3 +142,97 @@ enum NotificationType {
   SYSTEM
   RETURN_CONFIRMATION
 }
+
+// Adicione ao seu schema existente
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model User {
+  id            String   @id @default(cuid())
+  name          String
+  email         String   @unique
+  emailVerified DateTime?
+  image         String?
+  role          UserRole @default(CLIENT)
+  status        UserStatus @default(ACTIVE)
+  
+  // Relacionamentos
+  accounts      Account[]
+  sessions      Session[]
+  loans         Loan[]
+  reviews       Review[]
+  createdBooks  Book[]    @relation("BookCreator")
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("users")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+// Adicione esses enums
+enum UserRole {
+  CLIENT
+  EMPLOYEE
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+// Model Review (para observações dos clientes)
+model Review {
+  id          String   @id @default(cuid())
+  content     String
+  page        Int?
+  isPrivate   Boolean  @default(true)
+  
+  book        Book     @relation(fields: [bookId], references: [id])
+  bookId      String
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([bookId, userId, page])
+  @@map("reviews")
+}
