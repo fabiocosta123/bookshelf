@@ -14,37 +14,8 @@ async function main() {
   await prisma.book.deleteMany()
   await prisma.user.deleteMany()
 
-  // Criar usuário admin
-  console.log('Criando usuário admin...')
-  const admin = await prisma.user.create({
-    data: {
-      name: 'Administrador',
-      email: 'admin@bookshelf.com',
-      role: 'ADMIN',
-      registration_number: 'ADM001'
-    }
-  })
 
-  // Criar usuário funcionário
-  console.log(' Criando usuário funcionário...')
-  const employee = await prisma.user.create({
-    data: {
-      name: 'Maria Funcionária',
-      email: 'maria@bookshelf.com',
-      role: 'EMPLOYEE', // ← NOVO
-      registration_number: 'EMP001'
-    }
-  })
-
-  // Criar usuário comum
-  const user = await prisma.user.create({
-    data: {
-      name: 'João Silva',
-      email: 'joao@email.com',
-      phone: '(11) 99999-9999',
-      registration_number: 'USER001'
-    }
-  })
+  
 
   // Criar livros de exemplo
   console.log(' Criando livros de exemplo...')
@@ -118,33 +89,6 @@ async function main() {
     ]
   })
 
-  // Criar alguns empréstimos de exemplo
-  console.log('📋 Criando empréstimos de exemplo...')
-  const loan = await prisma.loan.create({
-    data: {
-      bookId: (await prisma.book.findFirst({ where: { title: 'Fundação' } }))!.id,
-      userId: user.id,
-      loan_date: new Date('2024-01-15'),
-      due_date: new Date('2024-02-15'),
-      status: 'ACTIVE',
-      condition_before: 'EXCELLENT'
-    }
-  })
-
-  // Criar algumas observações/reviews de exemplo
-  console.log('💬 Criando observações de exemplo...')
-  const domCasmurroBook = await prisma.book.findFirst({ where: { title: 'Dom Casmurro' } })
-  
-  if (domCasmurroBook) {
-    const review = await prisma.review.create({
-      data: {
-        content: 'Que livro incrível! A narrativa do Bentinho me deixou pensando por dias.',
-        bookId: domCasmurroBook.id,
-        userId: user.id,
-        isPrivate: true
-      }
-    })
-  }
 }
 
 main()

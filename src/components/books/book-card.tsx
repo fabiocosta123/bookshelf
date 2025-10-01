@@ -6,6 +6,7 @@ import { useState } from "react";
 import { DeleteConfirmation } from "./delete-confirmation";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/use-auth";
 
 interface BookCardProps {
   book: {
@@ -26,9 +27,11 @@ interface BookCardProps {
     }>;
   };
   onDelete?: (id: string) => void;
+  showAdminActions?: boolean;
 }
 
-export function BookCard({ book, onDelete }: BookCardProps) {
+export function BookCard({ book, onDelete, showAdminActions = true }: BookCardProps) {
+  const { isClient, isEmployee, isAdmin } = useAuth();
   const router = useRouter();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -47,7 +50,14 @@ export function BookCard({ book, onDelete }: BookCardProps) {
   const availableCopies = book.available_copies;
   const isAvailable = availableCopies > 0;
 
+  // Clientes NÃO podem fazer ações administrativas
+  const canManageBooks = isEmployee || isAdmin;
+  const canDelete = canManageBooks && book.loans.length === 0;
+  const canEdit = canManageBooks;
+
   const handleDelete = async () => {
+    if (!canManageBooks) return; // Proteção extra
+    
     setIsDeleting(true);
 
     try {
@@ -60,20 +70,16 @@ export function BookCard({ book, onDelete }: BookCardProps) {
         throw new Error(errorData.error || "Erro ao excluir o livro");
       }
 
-      // Mensagem de sucesso elegante!
       toast.success("Livro excluído com sucesso!", {
         description: `"${book.title}" foi removido da biblioteca.`,
         duration: 3000,
       });
 
-      // Recarrega a página após um breve delay para ver a mensagem
       setTimeout(() => {
         window.location.reload();
       }, 2000);
     } catch (error) {
       console.error("Erro ao excluir livro:", error);
-
-      // Mensagem de erro elegante!
       toast.error("Erro ao excluir livro", {
         description: "Tente novamente mais tarde.",
         duration: 4000,
@@ -83,9 +89,6 @@ export function BookCard({ book, onDelete }: BookCardProps) {
       setIsDeleteModalOpen(false);
     }
   };
-
-  // Verifica se o livro pode ser excluído (não tem empréstimos ativos)
-  const canDelete = book.loans.length === 0;
 
   return (
     <>
@@ -175,6 +178,7 @@ export function BookCard({ book, onDelete }: BookCardProps) {
           {/* Ações */}
           <div className="flex justify-between items-center pt-3 border-t border-gray-100">
             <div className="flex space-x-2">
+              {/* Botão VER DETALHES - Disponível para todos */}
               <Link
                 href={`/books/${book.id}`}
                 className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
@@ -183,35 +187,41 @@ export function BookCard({ book, onDelete }: BookCardProps) {
                 <Eye className="h-4 w-4" />
               </Link>
 
-              <Link
-                href={`/books/${book.id}/edit`}
-                className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                title="Editar livro"
-              >
-                <Edit className="h-4 w-4" />
-              </Link>
+              {/* Botão EDITAR - Só para funcionários/admin */}
+              {canEdit && (
+                <Link
+                  href={`/books/${book.id}/edit`}
+                  className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                  title="Editar livro"
+                >
+                  <Edit className="h-4 w-4" />
+                </Link>
+              )}
             </div>
 
-            <button
-              onClick={() => setIsDeleteModalOpen(true)}
-              className={`p-2 rounded-lg transition-colors ${
-                canDelete
-                  ? "text-red-600 hover:bg-red-50"
-                  : "text-gray-400 cursor-not-allowed"
-              }`}
-              title={
-                canDelete
-                  ? "Excluir livro"
-                  : "Não pode ser excluído - possui empréstimos ativos"
-              }
-              disabled={!canDelete}
-            >
-              <Trash2 className="h-4 w-4" />
-            </button>
+            {/* Botão EXCLUIR - Só para funcionários/admin */}
+            {canManageBooks && (
+              <button
+                onClick={() => setIsDeleteModalOpen(true)}
+                className={`p-2 rounded-lg transition-colors ${
+                  canDelete
+                    ? "text-red-600 hover:bg-red-50"
+                    : "text-gray-400 cursor-not-allowed"
+                }`}
+                title={
+                  canDelete
+                    ? "Excluir livro"
+                    : "Não pode ser excluído - possui empréstimos ativos"
+                }
+                disabled={!canDelete}
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            )}
           </div>
 
-          {/* Mensagem se tiver empréstimos */}
-          {book.loans.length > 0 && (
+          {/* Mensagem se tiver empréstimos - Só para admin/funcionários */}
+          {canManageBooks && book.loans.length > 0 && (
             <div className="mt-2 text-xs text-orange-600">
               ⚠️ Não pode ser excluído - possui empréstimos ativos
             </div>
@@ -219,14 +229,16 @@ export function BookCard({ book, onDelete }: BookCardProps) {
         </div>
       </div>
 
-      {/* Modal de Confirmação */}
-      <DeleteConfirmation
-        isOpen={isDeleteModalOpen && canDelete}
-        onClose={() => setIsDeleteModalOpen(false)}
-        onConfirm={handleDelete}
-        bookTitle={book.title}
-        isLoading={isDeleting}
-      />
+      {/* Modal de Confirmação - Só aparece para admin/funcionários */}
+      {canManageBooks && (
+        <DeleteConfirmation
+          isOpen={isDeleteModalOpen && canDelete}
+          onClose={() => setIsDeleteModalOpen(false)}
+          onConfirm={handleDelete}
+          bookTitle={book.title}
+          isLoading={isDeleting}
+        />
+      )}
     </>
   );
 }

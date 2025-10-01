@@ -1,23 +1,33 @@
+'use client';
+
 import { BookPlus } from 'lucide-react';
 import Link from 'next/link';
 import { BookCard } from '@/components/books/book-card';
 import { bookService, GENRES, type BookFilter } from '@/lib/services/book-service';
 import { SearchAndFilter } from '@/components/books/search-and-filter';
 import { ReadingStatus } from '@prisma/client';
+import { useAuth } from '@/hooks/use-auth';
+import { useRequireAuth } from '@/hooks/use-require-auth';
+import { useEffect, useState } from 'react';
 
-export default async function BooksPage({
+export default function BooksPage({
   searchParams
 }: {
   searchParams: { search?: string; genre?: string; status?: string }
 }) {
-  // definir os filters
+  useRequireAuth(); // Protege a página
+  const { isClient } = useAuth();
+  
+  const [books, setBooks] = useState([]);
+  const [genres, setGenres] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Definir os filters
   const filters: BookFilter = {
     search: searchParams.search,
-    // Verificar se o gênero é válido
     genre: searchParams.genre && GENRES.includes(searchParams.genre as any) 
       ? searchParams.genre as any 
       : undefined,
-    // Verificar se o status é válido
     readingStatus: searchParams.status && [
       'QUERO_LER', 'LENDO', 'LIDO', 'PAUSADO', 'ABANDONADO'
     ].includes(searchParams.status)
@@ -25,11 +35,32 @@ export default async function BooksPage({
       : undefined
   };
 
-  // DEPOIS buscar os dados
-  const [books, genres] = await Promise.all([
-    bookService.getBooks(filters), // ← Agora filters já está definido
-    bookService.getGenres()
-  ]);
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const [booksData, genresData] = await Promise.all([
+          bookService.getBooks(filters),
+          bookService.getGenres()
+        ]);
+        setBooks(booksData);
+        setGenres(genresData);
+      } catch (error) {
+        console.error('Erro ao carregar livros:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadData();
+  }, [searchParams.search, searchParams.genre, searchParams.status]);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -38,17 +69,20 @@ export default async function BooksPage({
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Biblioteca</h1>
           <p className="text-gray-600 mt-2">
-            Gerencie sua coleção de livros ({books.length} livros)
+            {isClient ? 'Explore nossa coleção' : 'Gerencie sua coleção de livros'} ({books.length} livros)
           </p>
         </div>
         
-        <Link
-          href="/books/new"
-          className="mt-4 sm:mt-0 bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition duration-200 flex items-center"
-        >
-          <BookPlus className="h-5 w-5 mr-2" />
-          Adicionar Livro
-        </Link>
+        {/* Botão "Adicionar Livro" - Só para não-clientes */}
+        {!isClient && (
+          <Link
+            href="/books/new"
+            className="mt-4 sm:mt-0 bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition duration-200 flex items-center"
+          >
+            <BookPlus className="h-5 w-5 mr-2" />
+            Adicionar Livro
+          </Link>
+        )}
       </div>
 
       {/* Busca e Filtros */}
@@ -71,23 +105,33 @@ export default async function BooksPage({
           <p className="text-gray-600 mb-6 max-w-md mx-auto">
             {filters.search || filters.genre || filters.readingStatus 
               ? 'Tente ajustar os filtros de busca.'
-              : 'Comece adicionando seu primeiro livro à biblioteca.'
+              : isClient 
+                ? 'A biblioteca está vazia no momento.'
+                : 'Comece adicionando seu primeiro livro à biblioteca.'
             }
           </p>
-          <Link
-            href="/books/new"
-            className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition duration-200 inline-flex items-center"
-          >
-            <BookPlus className="h-5 w-5 mr-2" />
-            Adicionar Primeiro Livro
-          </Link>
+          
+          {/* Botão só para não-clientes */}
+          {!isClient && (
+            <Link
+              href="/books/new"
+              className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition duration-200 inline-flex items-center"
+            >
+              <BookPlus className="h-5 w-5 mr-2" />
+              Adicionar Primeiro Livro
+            </Link>
+          )}
         </div>
       ) : (
         <>
           {/* Grid de Livros */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {books.map((book) => (
-              <BookCard key={book.id} book={book} />
+              <BookCard 
+                key={book.id} 
+                book={book} 
+                showAdminActions={!isClient} // ← AQUI ESTÁ A CORREÇÃO!
+              />
             ))}
           </div>
 

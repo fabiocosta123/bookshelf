@@ -1,22 +1,22 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: [
-      'covers.openlibrary.org',
-      'via.placeholder.com',
-      'images.unsplash.com'
-    ],
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'covers.openlibrary.org',
-        pathname: '/b/id/**',
+        hostname: 'tse4.mm.bing.net',
       },
       {
         protocol: 'https', 
-        hostname: '**.openlibrary.org',
-      }
+        hostname: 'covers.openlibrary.org',
+      },
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com', // Para avatares do Google
+      },
+     
     ],
+    domains: ['tse4.mm.bing.net', 'covers.openlibrary.org', 'lh3.googleusercontent.com'],
   },
 }
 
