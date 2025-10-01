@@ -4,10 +4,10 @@ import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
 
 async function main() {
-  console.log('🌱 Iniciando seed do banco de dados...')
+  console.log('Iniciando seed do banco de dados...')
 
   // Limpar dados existentes (opcional)
-  console.log('🧹 Limpando dados existentes...')
+  console.log(' Limpando dados existentes...')
   await prisma.notification.deleteMany()
   await prisma.bookCondition.deleteMany()
   await prisma.loan.deleteMany()
@@ -15,13 +15,24 @@ async function main() {
   await prisma.user.deleteMany()
 
   // Criar usuário admin
-  console.log('👤 Criando usuário admin...')
+  console.log('Criando usuário admin...')
   const admin = await prisma.user.create({
     data: {
       name: 'Administrador',
       email: 'admin@bookshelf.com',
-      user_type: 'ADMIN',
+      role: 'ADMIN',
       registration_number: 'ADM001'
+    }
+  })
+
+  // Criar usuário funcionário
+  console.log(' Criando usuário funcionário...')
+  const employee = await prisma.user.create({
+    data: {
+      name: 'Maria Funcionária',
+      email: 'maria@bookshelf.com',
+      role: 'EMPLOYEE', // ← NOVO
+      registration_number: 'EMP001'
     }
   })
 
@@ -36,7 +47,7 @@ async function main() {
   })
 
   // Criar livros de exemplo
-  console.log('📚 Criando livros de exemplo...')
+  console.log(' Criando livros de exemplo...')
   const books = await prisma.book.createMany({
     data: [
       {
@@ -120,11 +131,20 @@ async function main() {
     }
   })
 
-  console.log('✅ Seed completado com sucesso!')
-  console.log(`📊 Estatísticas:`)
-  console.log(`   👥 Usuários: 2`)
-  console.log(`   📚 Livros: 5`) 
-  console.log(`   📋 Empréstimos: 1`)
+  // Criar algumas observações/reviews de exemplo
+  console.log('💬 Criando observações de exemplo...')
+  const domCasmurroBook = await prisma.book.findFirst({ where: { title: 'Dom Casmurro' } })
+  
+  if (domCasmurroBook) {
+    const review = await prisma.review.create({
+      data: {
+        content: 'Que livro incrível! A narrativa do Bentinho me deixou pensando por dias.',
+        bookId: domCasmurroBook.id,
+        userId: user.id,
+        isPrivate: true
+      }
+    })
+  }
 }
 
 main()

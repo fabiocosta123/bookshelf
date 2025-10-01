@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { dashboardService } from "@/lib/services/dashboard-service-server";
 
 export async function GET() {
   try {
@@ -11,20 +11,10 @@ export async function GET() {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
     }
 
-    const readingStats = await prisma.book.groupBy({
-      by: ["reading_status"],
-      _count: {
-        _all: true,
-      },
-    });
+    const readingStats = await dashboardService.getReadingStats();
 
-    // Transformar para o formato esperado
-    const stats = readingStats.reduce((acc, item) => {
-      acc[item.reading_status] = item._count._all;
-      return acc;
-    }, {} as Record<string, number>);
+    return NextResponse.json(readingStats);
 
-    return NextResponse.json(stats);
   } catch (error) {
     console.error("Erro ao buscar estatísticas de leitura:", error);
     return NextResponse.json(

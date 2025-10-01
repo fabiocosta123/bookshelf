@@ -15,11 +15,18 @@ interface DashboardData {
 
 export default function Dashboard() {
   useRequireAuth(); // Protege a página
-  const { user, canViewReports } = useAuth();
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
+  useRequireAuth(); // Protege a página - redireciona se não autenticado
+
+
   useEffect(() => {
+
+    // só carrega dados se estiver autenticado
+    if (!isAuthenticated || authLoading) return;
+
     async function loadData() {
       try {
         const [stats, readingStats] = await Promise.all([
@@ -35,9 +42,9 @@ export default function Dashboard() {
     }
 
     loadData();
-  }, []);
+  }, [isAuthenticated, authLoading]); // só executa se autenticado
 
-  if (loading) {
+  if (authLoading || loading) {
     return (
       <div className="flex justify-center items-center min-h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
