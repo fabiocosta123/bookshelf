@@ -51,17 +51,7 @@ export class ReviewServiceServer {
     userId: string;
     isPrivate?: boolean;
   }) {
-    // Verificar se já existe uma observação para mesma página
-    const existingReview = await prisma.review.findMany({
-      where: {
-        bookId: data.bookId,
-        userId: data.userId
-        }
-    });
-
-    if (existingReview) {
-      throw new Error('Você já tem uma observação para esta página.');
-    }
+    
 
     return await prisma.review.create({
       data: {
