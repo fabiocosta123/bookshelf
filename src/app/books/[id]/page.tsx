@@ -4,8 +4,9 @@ import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { useRequireAuth } from '@/hooks/use-require-auth';
 import { useEffect, useState } from 'react';
-import { Book, ArrowLeft, Star, Users, Calendar } from 'lucide-react';
+import { Book, ArrowLeft, Star } from 'lucide-react';
 import Link from 'next/link';
+import { ReviewSection } from '@/components/books/review-section';
 
 interface BookDetail {
   id: string;
@@ -213,8 +214,12 @@ export default function BookDetailPage() {
                   </button>
                 </>
               )}
+              
             </div>
           </div>
+
+          {/* Seção de observações apenas para clientes */}
+          {isClient && <ReviewSection bookId={book.id} />}
         </div>
       </div>
     </div>
