@@ -9,6 +9,8 @@ import { MessageSquare, Plus } from "lucide-react";
 
 interface ReviewSectionProps {
   bookId: string;
+  showFormInitially?: boolean;
+  onFormClose?: () => void;
 }
 
 export function ReviewSection({ bookId }: ReviewSectionProps) {

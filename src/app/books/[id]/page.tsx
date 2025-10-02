@@ -35,6 +35,7 @@ export default function BookDetailPage() {
   
   const [book, setBook] = useState<BookDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showReviewForm, setShowReviewForm] = useState(false);
 
   useEffect(() => {
     async function loadBook() {
@@ -147,7 +148,7 @@ export default function BookDetailPage() {
         </div>
 
         {/* Detalhes do Livro */}
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2 space-y-6">
           <div className="bg-white rounded-lg shadow-sm border p-6">
             <h2 className="text-xl font-semibold mb-4">Detalhes do Livro</h2>
             
@@ -192,11 +193,11 @@ export default function BookDetailPage() {
             <div className="flex space-x-4 pt-6 border-t border-gray-200">
               {isClient ? (
                 <>
-                  <button className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-                    Fazer Observação
-                  </button>
+                 
                   {isAvailable && (
-                    <button className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors">
+                    <button className="bg-green-600 text-white px-6 py-2 rounded-lg
+                     hover:bg-green-700 transition-colors cursor-pointer"
+                     >
                       Solicitar Empréstimo
                     </button>
                   )}
@@ -218,8 +219,14 @@ export default function BookDetailPage() {
             </div>
           </div>
 
-          {/* Seção de observações apenas para clientes */}
-          {isClient && <ReviewSection bookId={book.id} />}
+          {/* Seção de Observações (apenas para clientes) */}
+          {isClient && (
+            <ReviewSection 
+              bookId={book.id} 
+              showFormInitially={showReviewForm} 
+              onFormClose={() => setShowReviewForm(false)} 
+            />
+          )}
         </div>
       </div>
     </div>
