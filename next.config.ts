@@ -17,7 +17,7 @@ const nextConfig = {
      
     ],
     domains: ['tse4.mm.bing.net', 'covers.openlibrary.org', 'lh3.googleusercontent.com'],
-  },
+  }
 }
 
-module.exports = nextConfig
+export default nextConfig
