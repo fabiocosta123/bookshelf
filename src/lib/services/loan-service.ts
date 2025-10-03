@@ -20,6 +20,7 @@ export interface UpdateLoanInput {
     approvedById?: string;
 }
 
+console.log('Loan Service está sendo carregado')
 export class LoanService {
     // criar solicitação de empréstimo (cliente)
     async createLoan(data: CreateLoanInput) {

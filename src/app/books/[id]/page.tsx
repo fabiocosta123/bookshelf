@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { Book, ArrowLeft, Star } from 'lucide-react';
 import Link from 'next/link';
 import { ReviewSection } from '@/components/books/review-section';
+import { toast } from 'sonner';
 
 interface BookDetail {
   id: string;
@@ -35,7 +36,9 @@ export default function BookDetailPage() {
   
   const [book, setBook] = useState<BookDetail | null>(null);
   const [loading, setLoading] = useState(true);
+
   const [showReviewForm, setShowReviewForm] = useState(false);
+  const [isRequestingLoan, setIsRequestingLoan] = useState(false);
 
   useEffect(() => {
     async function loadBook() {
@@ -60,6 +63,46 @@ export default function BookDetailPage() {
 
     loadBook();
   }, [params.id, router]);
+
+  // solicita empréstimo
+  const handleLoanRequest = async () => {
+    if (!book) return;
+
+    try {
+      setIsRequestingLoan(true)
+
+      const response = await fetch('/api/loans', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          bookId: book.id,
+          userNotes: ''
+        })
+      })
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Erro ao solicitar empréstimo')
+      }
+
+      toast.success('Solicitação de empréstimo enviada com sucesso!');
+
+      // atualiza os dados do livro para futura mudança
+      const updatedResponse = await fetch(`/api/books/${params.id}`)
+      if (updatedResponse.ok) {
+        const updatedBook = await updatedResponse.json();
+        setBook(updatedBook)
+      }
+    }catch (error: any) {
+      console.error('Erro ao solicitar empréstimo:', error)
+      toast.error(error.message)
+    }finally {
+      setIsRequestingLoan(false)
+    }
+  }
 
   if (loading) {
     return (
@@ -195,10 +238,16 @@ export default function BookDetailPage() {
                 <>
                  
                   {isAvailable && (
-                    <button className="bg-green-600 text-white px-6 py-2 rounded-lg
-                     hover:bg-green-700 transition-colors cursor-pointer"
-                     >
-                      Solicitar Empréstimo
+                    <button 
+                      onClick={handleLoanRequest}
+                      disabled={isRequestingLoan}
+                      className={`px-6 py-2 rounded-lg transition-colors ${
+                        isRequestingLoan 
+                          ? 'bg-gray-400 cursor-not-allowed' 
+                          : 'bg-green-600 hover:bg-green-700 cursor-pointer'
+                      } text-white`}
+                    >
+                      {isRequestingLoan ? 'Solicitando...' : 'Solicitar Empréstimo'}
                     </button>
                   )}
                 </>
