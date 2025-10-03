@@ -12,12 +12,10 @@ const nextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'lh3.googleusercontent.com', // Para avatares do Google
+        hostname: 'lh3.googleusercontent.com',
       },
-     
     ],
-    domains: ['tse4.mm.bing.net', 'covers.openlibrary.org', 'lh3.googleusercontent.com'],
-  }
+  },
 }
 
 export default nextConfig
