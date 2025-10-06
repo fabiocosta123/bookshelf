@@ -7,8 +7,12 @@ import {
   ClipboardList,
   BarChart3,
   Settings,
+  Download
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+
+
+import { usePathname } from "next/navigation";
+
 
 interface SideBar {
   isOpen: boolean;
@@ -16,16 +20,32 @@ interface SideBar {
   userRole?: string;
 }
 
-const menuItems = [
-  { icon: Home, label: "Dashboard", href: "/dashboard" },
-  { icon: Book, label: "Biblioteca", href: "/books" },
-  { icon: Users, label: "Usuários", href: "/users" },
-  { icon: ClipboardList, label: "Empréstimos", href: "/loans" },
-  { icon: BarChart3, label: "Relatórios", href: "/reports" },
-  { icon: Settings, label: "Configurações", href: "/settings" },
+// Menu base - Todos podem ver
+const baseMenuItems = [
+  { icon: Home, Label: "Dashboard", href: "/dashboard", roles: ["CLIENT", "EMPLOYEE", "ADMIN"]},
+  { icon: Book, label: "Biblioteca", href: "/books", roles: ["CLIENT", "EMPLOYEE", "ADMIN"] },
+  { icon: ClipboardList, label: "Empréstimos", href: "/loans", roles: ["CLIENT", "EMPLOYEE", "ADMIN"] },
+]
+
+// Menu apenas para funcionários e admin
+const adminMenuItems = [
+  { icon: Users, label: "Usuários", href: "/users", roles: ["EMPLOYEE", "ADMIN"] },
+  { icon: BarChart3, label: "Relatórios", href: "/reports", roles: ["EMPLOYEE", "ADMIN"] },
+  { icon: Download, label: "Importar Livros", href: "/books/import", roles: ["EMPLOYEE", "ADMIN"] }, // ← NOVO ITEM
+  { icon: Settings, label: "Configurações", href: "/settings", roles: ["EMPLOYEE", "ADMIN"] },
 ];
 
-export function Sidebar({ isOpen, onClose }: SideBar) {
+
+
+export function Sidebar({ isOpen, onClose, userRole }: SideBar) {
+  const pathname = usePathname();
+
+   // Filtra os itens do menu baseado no role do usuário
+  const menuItems = [
+    ...baseMenuItems.filter(item => item.roles.includes(userRole || "CLIENT")),
+    ...adminMenuItems.filter(item => item.roles.includes(userRole || "CLIENT"))
+  ];
+
   return (
     <>
       {isOpen && (
@@ -77,6 +97,9 @@ export function Sidebar({ isOpen, onClose }: SideBar) {
           <div className="text-center text-sm text-gray-600">
             <div className="font-semibold">Sistema Online</div>
             <div className="text-xs text-green-600">● Conectado</div>
+            {userRole && (
+              <div className="text-xs text-blue-600 mt-1">Role: {userRole}</div>
+            )}
           </div>
         </div>
       </aside>
