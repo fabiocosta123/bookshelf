@@ -204,10 +204,13 @@ export default function LoginPage() {
                 </button>
               </form>
 
-              <div className="mt-6 p-4 bg-amber-50 rounded-lg">
-                <p className="text-sm text-amber-700">
-                  <strong>Atenção:</strong> Esta área é restrita a funcionários
-                  e administradores do sistema.
+              <div className="mt-6 p-4 bg-amber-50 rounded-lg border border-amber-200">
+                <p className="text-sm text-amber-800">
+                  <strong>Acesso Restrito:</strong> Esta área é para
+                  {activeTab === "admin"
+                    ? " administradores e funcionários"
+                    : " leitores"}
+                  do sistema.
                 </p>
               </div>
             </div>

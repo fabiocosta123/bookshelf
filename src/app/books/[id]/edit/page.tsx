@@ -5,7 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import { ArrowLeft, Save, BookOpen, Search } from "lucide-react";
 import Link from "next/link";
 import { GENRES } from "@/lib/services/book-service";
-import { ReadingStatus } from "@prisma/client";
+import { ReadingStatus } from "@prisma/client/edge";
 
 interface Book {
   id: string;
