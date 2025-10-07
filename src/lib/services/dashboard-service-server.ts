@@ -1,4 +1,4 @@
-import { prisma } from '../database';
+import { prisma } from '../prisma';
 
 export class DashboardService {
     async getDashboardStats() {
@@ -44,7 +44,9 @@ export class DashboardService {
             }
         })
 
-        return readingStatus.reduce((acc, item) => {
+        return readingStatus.reduce((acc: Record<string, number>, item: {reading_status: string; _count: {
+            id: number
+        }}) => {
             acc[item.reading_status] = item._count.id;
             return acc;
         }, {} as Record<string, number>);
