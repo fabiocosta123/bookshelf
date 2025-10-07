@@ -45,6 +45,9 @@ model User {
   registration_number String?       @unique
   role                UserRole      @default(CLIENT)
   status              UserStatus    @default(ACTIVE)
+
+  password            String?   // hash da senha (apenas para admin/funcionários) 
+  salt                String?   // salt para o hash
   
   // Relações de autenticação
   accounts            Account[]

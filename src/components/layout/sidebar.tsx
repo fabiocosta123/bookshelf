@@ -22,7 +22,7 @@ interface SideBar {
 
 // Menu base - Todos podem ver
 const baseMenuItems = [
-  { icon: Home, Label: "Dashboard", href: "/dashboard", roles: ["CLIENT", "EMPLOYEE", "ADMIN"]},
+  { icon: Home, label: "Dashboard", href: "/dashboard", roles: ["CLIENT", "EMPLOYEE", "ADMIN"]},
   { icon: Book, label: "Biblioteca", href: "/books", roles: ["CLIENT", "EMPLOYEE", "ADMIN"] },
   { icon: ClipboardList, label: "Empréstimos", href: "/loans", roles: ["CLIENT", "EMPLOYEE", "ADMIN"] },
 ]
@@ -98,7 +98,7 @@ export function Sidebar({ isOpen, onClose, userRole }: SideBar) {
             <div className="font-semibold">Sistema Online</div>
             <div className="text-xs text-green-600">● Conectado</div>
             {userRole && (
-              <div className="text-xs text-blue-600 mt-1">Role: {userRole}</div>
+              <div className="text-xs text-blue-600 mt-1">Usuário: {userRole}</div>
             )}
           </div>
         </div>
