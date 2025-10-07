@@ -259,9 +259,9 @@ export default function BookDetailPage() {
                   >
                     Editar Livro
                   </Link>
-                  <button className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors">
+                  {/* <button className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors">
                     Excluir Livro
-                  </button>
+                  </button> */}
                 </>
               )}
               
