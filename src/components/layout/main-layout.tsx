@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { Header } from './header';
 import { Sidebar } from './sidebar';
 import { useAuth } from '@/hooks/use-auth';
@@ -13,6 +14,17 @@ interface MainLayoutProps {
 export function MainLayout({ children }: MainLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user, isLoading, isAuthenticated } = useAuth();
+  const pathname = usePathname();
+
+  const isLoginPage = pathname === '/auth/login';
+
+  if (isLoginPage) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+        {children}
+      </div>
+    );
+  }
 
   // Se estiver carregando a sessão, mostra loading
   if (isLoading) {

@@ -27,7 +27,7 @@ model Book {
   conditions      BookCondition[]
   reviews         Review[]
   createdBy       User?         @relation("BookCreator", fields: [createdById], references: [id])
-  createdById     String?
+  createdById     String
   
   createdAt       DateTime      @default(now()) @map("created_at")
   updatedAt       DateTime      @updatedAt @map("updated_at")
