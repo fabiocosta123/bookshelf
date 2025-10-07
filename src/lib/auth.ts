@@ -1,32 +1,39 @@
 import { NextAuthOptions } from "next-auth";
-import Google from "next-auth/providers/google";
-import Credentials from "next-auth/providers/credentials";
+import GoogleProvider from "next-auth/providers/google";
+import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "./prisma";
-import bcrypt from 'bcryptjs';
+import bcrypt from "bcryptjs";
+import { JWT } from "next-auth/jwt";
+import { Account, User } from "next-auth";
 
+// 🔐 Configuração principal do NextAuth
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma) as any,
+  adapter: PrismaAdapter(prisma),
   secret: process.env.NEXTAUTH_SECRET,
+  session: {
+    strategy: "database",
+  },
+  pages: {
+    signIn: "/auth/login",
+    signOut: "/auth/logout",
+    error: "/auth/error",
+  },
   providers: [
-    Google({
+    GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
-    
-    Credentials({
+    CredentialsProvider({
       name: "credentials",
       credentials: {
         email: { label: "Email", type: "email" },
-        password: { label: "Senha", type: "password" }
+        password: { label: "Senha", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          return null;
-        }
+        if (!credentials?.email || !credentials?.password) return null;
 
         try {
-          // Busca usuário no banco INCLUINDO password e salt
           const user = await prisma.user.findUnique({
             where: { email: credentials.email },
             select: {
@@ -38,25 +45,18 @@ export const authOptions: NextAuthOptions = {
               role: true,
               status: true,
               image: true,
-            }
+            },
           });
 
-          // Verifica se usuário existe e tem senha
-          if (!user || !user.password || !user.salt) {
-            return null;
-          }
+          if (!user || !user.password || !user.salt) return null;
 
-          // Verifica a senha
           const isPasswordValid = await bcrypt.compare(
             credentials.password,
             user.password
           );
 
-          if (!isPasswordValid) {
-            return null;
-          }
+          if (!isPasswordValid) return null;
 
-          // Retorna o usuário sem os campos sensíveis
           return {
             id: user.id,
             email: user.email,
@@ -65,48 +65,58 @@ export const authOptions: NextAuthOptions = {
             status: user.status,
             image: user.image,
           };
-
         } catch (error) {
-          console.error('Erro no authorize:', error);
+          console.error("❌ Erro no authorize:", error);
           return null;
         }
-      }
-    })
+      },
+    }),
   ],
+
+  // 🔁 Callbacks
   callbacks: {
-    async session({ session, user, token }) {
-      // Para login com Google
-      if (user) {
+    async session({ session, user }) {
+      if (!user?.id) return session;
+
+      try {
         const dbUser = await prisma.user.findUnique({
           where: { id: user.id },
           select: {
             id: true,
-            role: true,
-            status: true,
             email: true,
             name: true,
             image: true,
+            role: true,
+            status: true,
           },
         });
 
         if (dbUser) {
-          session.user.id = dbUser.id;
-          session.user.role = dbUser.role;
-          session.user.status = dbUser.status;
+          session.user = {
+            id: dbUser.id,
+            email: dbUser.email,
+            name: dbUser.name,
+            image: dbUser.image ?? undefined,
+            role: dbUser.role,
+            status: dbUser.status,
+          };
         }
-      }
-      
-      // Para login com credenciais
-      if (token) {
-        session.user.id = token.sub!;
-        session.user.role = token.role as string;
-        session.user.status = token.status as string;
+      } catch (error) {
+        console.error("❌ Erro ao buscar usuário no banco:", error);
       }
 
       return session;
     },
 
-    async jwt({ token, user, account }) {
+    async jwt({
+      token,
+      user,
+      account,
+    }: {
+      token: JWT;
+      user?: User;
+      account?: Account | null;
+    }): Promise<JWT> {
       if (user) {
         token.role = (user as any).role;
         token.status = (user as any).status;
@@ -115,33 +125,23 @@ export const authOptions: NextAuthOptions = {
     },
 
     async signIn({ user, account }) {
-      if (account?.provider === "google") {
-        if (user.email) {
-          const existingUser = await prisma.user.findUnique({
-            where: { email: user.email },
-            select: { status: true },
-          });
+      if (account?.provider === "google" && user.email) {
+        const existingUser = await prisma.user.findUnique({
+          where: { email: user.email },
+          select: { status: true },
+        });
 
-          if (existingUser && existingUser.status === "SUSPENDED") {
-            return false;
-          }
+        if (existingUser?.status === "SUSPENDED") {
+          return false;
         }
       }
-      
+
       return true;
     },
   },
-  pages: {
-    signIn: "/auth/login",
-    signOut: "/auth/logout",
-    error: "/auth/error",
-  },
-  session: {
-    strategy: "database",
-  },
 };
 
-// Extendendo tipos do NextAuth
+// 🧠 Extendendo tipos do NextAuth
 declare module "next-auth" {
   interface Session {
     user: {
