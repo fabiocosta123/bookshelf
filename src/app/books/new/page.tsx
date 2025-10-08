@@ -28,13 +28,15 @@ export default function NewBookPage() {
   });
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
   ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    
+    setFormData((prev) => ({ ...prev, [name]: value }));
+
     if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: "" }));
+      setErrors((prev) => ({ ...prev, [name]: "" }));
     }
 
     if (name === "cover" && value) {
@@ -53,7 +55,11 @@ export default function NewBookPage() {
       newErrors.author = "Autor é obrigatório";
     }
 
-    if (formData.year && (Number(formData.year) < 1000 || Number(formData.year) > new Date().getFullYear())) {
+    if (
+      formData.year &&
+      (Number(formData.year) < 1000 ||
+        Number(formData.year) > new Date().getFullYear())
+    ) {
       newErrors.year = "Ano inválido";
     }
 
@@ -65,7 +71,10 @@ export default function NewBookPage() {
       newErrors.pages = "Número de páginas deve ser maior que zero";
     }
 
-    if (formData.rating && (Number(formData.rating) < 1 || Number(formData.rating) > 5)) {
+    if (
+      formData.rating &&
+      (Number(formData.rating) < 1 || Number(formData.rating) > 5)
+    ) {
       newErrors.rating = "Avaliação deve ser entre 1 e 5";
     }
 
@@ -98,28 +107,45 @@ export default function NewBookPage() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/books', {
-        method: 'POST',
+      const response = await fetch("/api/books", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(formData),
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Erro ao salvar livro');
+        let errorMessage = "Erro ao salvar livro";
+
+        try {
+          const contentType = response.headers.get("Content-Type");
+          if (contentType?.includes("application/json")) {
+            const errorData = await response.json();
+            errorMessage = errorData?.error || errorMessage;
+          } else {
+            const text = await response.text();
+            console.warn("Resposta não-JSON recebida:", text);
+          }
+        } catch (err) {
+          console.error("Falha ao processar erro da API:", err);
+        }
+
+        throw new Error(errorMessage);
       }
 
       const result = await response.json();
       console.log("✅ Livro salvo com sucesso:", result);
-      
+
       router.push("/books");
       router.refresh();
     } catch (error) {
       console.error("❌ Erro ao criar livro:", error);
-      setErrors({ 
-        submit: error instanceof Error ? error.message : "Erro ao salvar livro. Tente novamente." 
+      setErrors({
+        submit:
+          error instanceof Error
+            ? error.message
+            : "Erro ao salvar livro. Tente novamente.",
       });
     } finally {
       setIsLoading(false);
@@ -136,7 +162,9 @@ export default function NewBookPage() {
           <ArrowLeft className="h-5 w-5 mr-2" />
           Voltar para Biblioteca
         </Link>
-        <h1 className="text-3xl font-bold text-gray-900">Adicionar Novo Livro</h1>
+        <h1 className="text-3xl font-bold text-gray-900">
+          Adicionar Novo Livro
+        </h1>
       </div>
 
       <div className="max-w-4xl mx-auto">
@@ -163,7 +191,9 @@ export default function NewBookPage() {
                   }`}
                   placeholder="Título do livro"
                 />
-                {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title}</p>}
+                {errors.title && (
+                  <p className="text-red-500 text-sm mt-1">{errors.title}</p>
+                )}
               </div>
 
               <div>
@@ -180,7 +210,9 @@ export default function NewBookPage() {
                   }`}
                   placeholder="Nome do autor"
                 />
-                {errors.author && <p className="text-red-500 text-sm mt-1">{errors.author}</p>}
+                {errors.author && (
+                  <p className="text-red-500 text-sm mt-1">{errors.author}</p>
+                )}
               </div>
 
               <div>
@@ -234,7 +266,9 @@ export default function NewBookPage() {
                   }`}
                   placeholder="2024"
                 />
-                {errors.year && <p className="text-red-500 text-sm mt-1">{errors.year}</p>}
+                {errors.year && (
+                  <p className="text-red-500 text-sm mt-1">{errors.year}</p>
+                )}
               </div>
 
               <div>
@@ -251,7 +285,9 @@ export default function NewBookPage() {
                   }`}
                   placeholder="300"
                 />
-                {errors.pages && <p className="text-red-500 text-sm mt-1">{errors.pages}</p>}
+                {errors.pages && (
+                  <p className="text-red-500 text-sm mt-1">{errors.pages}</p>
+                )}
               </div>
             </div>
           </div>
@@ -311,7 +347,7 @@ export default function NewBookPage() {
                     alt="Preview"
                     className="w-full h-full object-cover"
                     onError={(e) => {
-                      e.currentTarget.style.display = 'none';
+                      e.currentTarget.style.display = "none";
                     }}
                   />
                 </div>
@@ -321,7 +357,9 @@ export default function NewBookPage() {
 
           {/* Informações Adicionais */}
           <div className="bg-white rounded-lg border p-6">
-            <h2 className="text-xl font-semibold mb-4">Informações Adicionais</h2>
+            <h2 className="text-xl font-semibold mb-4">
+              Informações Adicionais
+            </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -338,7 +376,11 @@ export default function NewBookPage() {
                   }`}
                   min="1"
                 />
-                {errors.total_copies && <p className="text-red-500 text-sm mt-1">{errors.total_copies}</p>}
+                {errors.total_copies && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.total_copies}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -358,7 +400,9 @@ export default function NewBookPage() {
                   step="0.5"
                   placeholder="4.5"
                 />
-                {errors.rating && <p className="text-red-500 text-sm mt-1">{errors.rating}</p>}
+                {errors.rating && (
+                  <p className="text-red-500 text-sm mt-1">{errors.rating}</p>
+                )}
               </div>
             </div>
 
