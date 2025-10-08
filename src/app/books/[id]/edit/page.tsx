@@ -7,6 +7,14 @@ import Link from "next/link";
 import { GENRES } from "@/lib/services/book-service";
 import { ReadingStatus } from "@prisma/client/edge";
 
+interface Review {
+  id: string;
+  content: string;
+  page?: number;
+  isPrivate: boolean;
+  user?: { name?: string };
+}
+
 interface Book {
   id: string;
   title: string;

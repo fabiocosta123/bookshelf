@@ -1,16 +1,39 @@
 'use client';
 
-import { Book, Users, ClipboardList, CheckCircle } from "lucide-react";
-import { StatsCard } from "@/components/dashboard/stats-card";
-import { dashboardService } from "@/lib/services/dashboard-service";
-import { RecentBooks } from "@/components/dashboard/recent-books";
-import { useAuth } from "@/hooks/use-auth";
-import { useRequireAuth } from "@/hooks/use-require-auth";
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
+import { Book, Users, ClipboardList, CheckCircle } from 'lucide-react';
+import { StatsCard } from '@/components/dashboard/stats-card';
+import { RecentBooks } from '@/components/dashboard/recent-books';
+import { dashboardService } from '@/lib/services/dashboard-service';
+import { useAuth } from '@/hooks/use-auth';
+import { useRequireAuth } from '@/hooks/use-require-auth';
+
+interface DashboardStats {
+  totalBooks: number;
+  totalUsers: number;
+  activeLoans: number;
+  completedLoans: number;
+  recentBooks: {
+    id: string;
+    title: string;
+    author: string;
+    cover?: string | null;
+    reading_status: string;
+  }[];
+}
+
+interface ReadingStats {
+  QUERO_LER?: number;
+  LENDO?: number;
+  LIDO?: number;
+  PAUSADO?: number;
+  ABANDONADO?: number;
+  totalPagesRead: number;
+}
 
 interface DashboardData {
-  stats: any;
-  readingStats: any;
+  stats: DashboardStats;
+  readingStats: ReadingStats;
 }
 
 export default function Dashboard() {
@@ -19,19 +42,14 @@ export default function Dashboard() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useRequireAuth(); // Protege a página - redireciona se não autenticado
-
-
   useEffect(() => {
-
-    // só carrega dados se estiver autenticado
     if (!isAuthenticated || authLoading) return;
 
     async function loadData() {
       try {
         const [stats, readingStats] = await Promise.all([
           dashboardService.getDashboardStats(),
-          dashboardService.getReadingStats()
+          dashboardService.getReadingStats(),
         ]);
         setData({ stats, readingStats });
       } catch (error) {
@@ -42,7 +60,7 @@ export default function Dashboard() {
     }
 
     loadData();
-  }, [isAuthenticated, authLoading]); // só executa se autenticado
+  }, [isAuthenticated, authLoading]);
 
   if (authLoading || loading) {
     return (
@@ -62,28 +80,36 @@ export default function Dashboard() {
 
   return (
     <div>
+      {/* Cabeçalho */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
         <p className="text-gray-600 mt-2">
           {user ? `Bem-vindo, ${user.name}! ` : ''}Visão geral da sua biblioteca pessoal de livros.
         </p>
-        
-        {/* Mostrar role do usuário */}
+
+        {/* Badge de role */}
         {user && (
           <div className="mt-2">
-            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-              user.role === 'ADMIN' ? 'bg-red-100 text-red-800' :
-              user.role === 'EMPLOYEE' ? 'bg-blue-100 text-blue-800' :
-              'bg-green-100 text-green-800'
-            }`}>
-              {user.role === 'ADMIN' ? 'Administrador' :
-               user.role === 'EMPLOYEE' ? 'Funcionário' : 'Cliente'}
+            <span
+              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                user.role === 'ADMIN'
+                  ? 'bg-red-100 text-red-800'
+                  : user.role === 'EMPLOYEE'
+                  ? 'bg-blue-100 text-blue-800'
+                  : 'bg-green-100 text-green-800'
+              }`}
+            >
+              {user.role === 'ADMIN'
+                ? 'Administrador'
+                : user.role === 'EMPLOYEE'
+                ? 'Funcionário'
+                : 'Cliente'}
             </span>
           </div>
         )}
       </div>
 
-      {/* Estatisticas */}
+      {/* Cards de estatísticas */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatsCard
           title="Total de Livros"
@@ -92,7 +118,6 @@ export default function Dashboard() {
           description="Na sua biblioteca"
           color="blue"
         />
-
         <StatsCard
           title="Usuários Cadastrados"
           value={data.stats.totalUsers}
@@ -100,7 +125,6 @@ export default function Dashboard() {
           description="No sistema"
           color="green"
         />
-
         <StatsCard
           title="Empréstimos Ativos"
           value={data.stats.activeLoans}
@@ -108,7 +132,6 @@ export default function Dashboard() {
           description="Livros emprestados"
           color="purple"
         />
-
         <StatsCard
           title="Empréstimos Finalizados"
           value={data.stats.completedLoans}
@@ -118,20 +141,30 @@ export default function Dashboard() {
         />
       </div>
 
-      {/* Conteudo */}
+      {/* Conteúdo principal */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         {/* Status de Leitura */}
         <div className="bg-white rounded-lg shadow-sm p-6 border">
           <h2 className="text-xl font-semibold mb-4">Status de Leitura</h2>
           <div className="space-y-3">
-            {Object.entries(data.readingStats).map(([status, count]) => (
-              <div key={status} className="flex justify-between items-center">
-                <span className="text-sm text-gray-600 capitalize">
-                  {status.toLowerCase().replace("_", " ")}
-                </span>
-                <span className="font-semibold">{count as number}</span>
-              </div>
-            ))}
+            {Object.entries(data.readingStats).map(([status, count]) => {
+              if (status === 'totalPagesRead') return null;
+
+              return (
+                <div key={status} className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600 capitalize">
+                    {status.toLowerCase().replace('_', ' ')}
+                  </span>
+                  <span className="font-semibold">{count}</span>
+                </div>
+              );
+            })}
+
+            {/* Páginas Lidas */}
+            <div className="flex justify-between items-center pt-2 border-t">
+              <span className="text-sm text-gray-600">Páginas Lidas</span>
+              <span className="font-semibold">{data.readingStats.totalPagesRead}</span>
+            </div>
           </div>
         </div>
 
@@ -142,18 +175,17 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Mensagem de boas-vindas personalizada */}
+      {/* Mensagem de boas-vindas */}
       <div className="bg-white rounded-lg shadow-sm p-6 border">
         <h2 className="text-xl font-semibold mb-4">
           {user ? `Bem-vindo de volta, ${user.name}!` : 'Bem-vindo ao BookShelf!'}
         </h2>
         <p className="text-gray-600 mb-4">
-          {user?.role === 'ADMIN' 
+          {user?.role === 'ADMIN'
             ? 'Como administrador, você tem acesso completo a todas as funcionalidades do sistema.'
             : user?.role === 'EMPLOYEE'
             ? 'Como funcionário, você pode gerenciar livros e empréstimos do sistema.'
-            : 'Como cliente, você pode explorar nossa biblioteca e fazer observações nos livros.'
-          }
+            : 'Como cliente, você pode explorar nossa biblioteca e fazer observações nos livros.'}
         </p>
         <div className="flex items-center text-sm text-gray-500">
           <span>Email: {user?.email}</span>
