@@ -4,7 +4,7 @@ import { Search, Filter, X } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useCallback } from "react";
 import { ReadingStatus } from "@prisma/client";
-import { GENRES, Genre } from "@/lib/services/book-service";
+import { GENRES } from "@/lib/services/book-service";
 
 interface SearchAndFilterProps {
   genres: string[];
