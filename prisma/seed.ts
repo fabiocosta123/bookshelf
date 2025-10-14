@@ -1,4 +1,3 @@
-// prisma/seed.ts
 import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 
@@ -9,8 +8,9 @@ async function main() {
   
   // Hash da senha
   const saltRounds = 12
+  const salt = await bcrypt.genSaltSync(saltRounds)
   const hashedPassword = await bcrypt.hash('admin123', saltRounds)
-  const salt = bcrypt.genSaltSync(saltRounds)
+  
   
   // Criar usuário admin
   try {

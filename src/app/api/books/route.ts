@@ -139,7 +139,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(newBook, { status: 201 });
   } catch (error: any) {
-    console.error("❌ Erro ao salvar livro (detalhado):", error);
+    console.error("Erro ao salvar livro (detalhado):", error);
     return NextResponse.json({ error: error?.message || "Erro ao salvar livro" }, { status: 500 });
   }
 }

@@ -27,7 +27,7 @@ model Book {
   conditions      BookCondition[]
   reviews         Review[]
   createdBy       User?         @relation("BookCreator", fields: [createdById], references: [id])
-  createdById     String
+  createdById     String?
   
   createdAt       DateTime      @default(now()) @map("created_at")
   updatedAt       DateTime      @updatedAt @map("updated_at")
@@ -71,26 +71,26 @@ model Loan {
   bookId            String              @map("book_id")
   userId            String              @map("user_id")
   
-  // 🗓️ DATAS CONTROLADAS PELO SISTEMA/FUNCIONÁRIO
+  //  DATAS CONTROLADAS PELO SISTEMA/FUNCIONÁRIO
   requestedAt       DateTime            @default(now()) @map("requested_at")
   approvedAt        DateTime?           @map("approved_at")
   loanDate          DateTime?           @map("loan_date")
   dueDate           DateTime?           @map("due_date")
   returnedAt        DateTime?           @map("returned_at")
   
-  // 📊 STATUS E CONTROLE
+  // STATUS E CONTROLE
   status            LoanStatus          @default(PENDING)
   
-  // 📝 INFORMAÇÕES TÉCNICAS (FUNCIONÁRIO)
+  //  INFORMAÇÕES TÉCNICAS (FUNCIONÁRIO)
   conditionBefore   BookConditionType?  @map("condition_before")
   conditionAfter    BookConditionType?  @map("condition_after")
   employeeNotes     String?             @map("employee_notes")
   rejectionReason   String?             @map("rejection_reason")
   
-  // 👤 INFORMAÇÕES DO CLIENTE
+  //  INFORMAÇÕES DO CLIENTE
   userNotes         String?             @map("user_notes")
   
-  // 🔗 RELAÇÕES
+  // RELAÇÕES
   book              Book                @relation(fields: [bookId], references: [id])
   user              User                @relation(fields: [userId], references: [id])
   approvedBy        User?               @relation("LoanApprover", fields: [approvedById], references: [id])

@@ -191,3 +191,232 @@ Commit suas mudanças: git commit -m 'Add nova funcionalidade'
 Push para a branch: git push origin feature/nova-funcionalidade
 
 Abra um Pull Request# bookshelf
+
+```
+bookshelf
+├─ client-5.12.0.tgz
+├─ components.json
+├─ eslint.config.mjs
+├─ next.config.ts
+├─ package-lock.json
+├─ package.json
+├─ postcss.config.mjs
+├─ prisma
+│  ├─ schema.prisma
+│  └─ seed.ts
+├─ public
+│  ├─ file.svg
+│  ├─ globe.svg
+│  ├─ next.svg
+│  ├─ vercel.svg
+│  └─ window.svg
+├─ README.md
+├─ scripts
+│  ├─ check-db.ts
+│  └─ create-admin.ts
+├─ src
+│  ├─ app
+│  │  ├─ api
+│  │  │  ├─ auth
+│  │  │  │  └─ [...nextauth]
+│  │  │  │     └─ route.ts
+│  │  │  ├─ books
+│  │  │  │  ├─ genres
+│  │  │  │  │  └─ route.ts
+│  │  │  │  ├─ import
+│  │  │  │  │  └─ route.ts
+│  │  │  │  ├─ route.ts
+│  │  │  │  ├─ users
+│  │  │  │  │  └─ [id]
+│  │  │  │  │     └─ reviews
+│  │  │  │  │        └─ route.ts
+│  │  │  │  └─ [id]
+│  │  │  │     └─ route.ts
+│  │  │  ├─ dashboard
+│  │  │  │  ├─ reading-stats
+│  │  │  │  │  └─ route.ts
+│  │  │  │  └─ stats
+│  │  │  │     └─ route.ts
+│  │  │  ├─ google-books
+│  │  │  │  └─ route.ts
+│  │  │  ├─ loans
+│  │  │  │  └─ route.ts
+│  │  │  └─ reviews
+│  │  │     ├─ route.ts
+│  │  │     └─ [id]
+│  │  │        └─ route.ts
+│  │  ├─ auth
+│  │  │  └─ login
+│  │  │     └─ page.tsx
+│  │  ├─ books
+│  │  │  ├─ import
+│  │  │  │  └─ page.tsx
+│  │  │  ├─ new
+│  │  │  │  └─ page.tsx
+│  │  │  ├─ page.tsx
+│  │  │  └─ [id]
+│  │  │     ├─ edit
+│  │  │     │  └─ page.tsx
+│  │  │     └─ page.tsx
+│  │  ├─ dashboard
+│  │  │  └─ page.tsx
+│  │  ├─ favicon.ico
+│  │  ├─ globals.css
+│  │  ├─ layout.tsx
+│  │  └─ page.tsx
+│  ├─ components
+│  │  ├─ books
+│  │  │  ├─ book-card.tsx
+│  │  │  ├─ delete-confirmation.tsx
+│  │  │  ├─ delete-review-confirmation.tsx
+│  │  │  ├─ review-form.tsx
+│  │  │  ├─ review-item.tsx
+│  │  │  ├─ review-list.tsx
+│  │  │  ├─ review-section.tsx
+│  │  │  └─ search-and-filter.tsx
+│  │  ├─ dashboard
+│  │  │  ├─ recent-books.tsx
+│  │  │  └─ stats-card.tsx
+│  │  ├─ layout
+│  │  │  ├─ header.tsx
+│  │  │  ├─ main-layout.tsx
+│  │  │  └─ sidebar.tsx
+│  │  ├─ providers
+│  │  │  └─ auth-provider.tsx
+│  │  └─ ui
+│  │     ├─ button.tsx
+│  │     └─ loading-spinner.tsx
+│  ├─ hooks
+│  │  ├─ use-auth.ts
+│  │  ├─ use-redirect-if-authenticated.ts
+│  │  └─ use-require-auth.ts
+│  └─ lib
+│     ├─ auth.ts
+│     ├─ prisma.ts
+│     ├─ services
+│     │  ├─ book-service-server.ts
+│     │  ├─ book-service.ts
+│     │  ├─ dashboard-service-server.ts
+│     │  ├─ dashboard-service.ts
+│     │  ├─ google-books-service.ts
+│     │  ├─ loan-service.ts
+│     │  ├─ review-service-server.ts
+│     │  └─ review-service.ts
+│     └─ utils.ts
+└─ tsconfig.json
+
+```
+```
+bookshelf
+├─ client-5.12.0.tgz
+├─ components.json
+├─ eslint.config.mjs
+├─ next.config.ts
+├─ package-lock.json
+├─ package.json
+├─ postcss.config.mjs
+├─ prisma
+│  ├─ schema.prisma
+│  └─ seed.ts
+├─ public
+│  ├─ file.svg
+│  ├─ globe.svg
+│  ├─ next.svg
+│  ├─ vercel.svg
+│  └─ window.svg
+├─ README.md
+├─ scripts
+│  ├─ check-db.ts
+│  └─ create-admin.ts
+├─ src
+│  ├─ app
+│  │  ├─ api
+│  │  │  ├─ auth
+│  │  │  │  └─ [...nextauth]
+│  │  │  │     └─ route.ts
+│  │  │  ├─ books
+│  │  │  │  ├─ genres
+│  │  │  │  │  └─ route.ts
+│  │  │  │  ├─ import
+│  │  │  │  │  └─ route.ts
+│  │  │  │  ├─ route.ts
+│  │  │  │  ├─ users
+│  │  │  │  │  └─ [id]
+│  │  │  │  │     └─ reviews
+│  │  │  │  │        └─ route.ts
+│  │  │  │  └─ [id]
+│  │  │  │     └─ route.ts
+│  │  │  ├─ dashboard
+│  │  │  │  ├─ reading-stats
+│  │  │  │  │  └─ route.ts
+│  │  │  │  └─ stats
+│  │  │  │     └─ route.ts
+│  │  │  ├─ google-books
+│  │  │  │  └─ route.ts
+│  │  │  ├─ loans
+│  │  │  │  └─ route.ts
+│  │  │  └─ reviews
+│  │  │     ├─ route.ts
+│  │  │     └─ [id]
+│  │  │        └─ route.ts
+│  │  ├─ auth
+│  │  │  └─ login
+│  │  │     └─ page.tsx
+│  │  ├─ books
+│  │  │  ├─ import
+│  │  │  │  └─ page.tsx
+│  │  │  ├─ new
+│  │  │  │  └─ page.tsx
+│  │  │  ├─ page.tsx
+│  │  │  └─ [id]
+│  │  │     ├─ edit
+│  │  │     │  └─ page.tsx
+│  │  │     └─ page.tsx
+│  │  ├─ dashboard
+│  │  │  └─ page.tsx
+│  │  ├─ favicon.ico
+│  │  ├─ globals.css
+│  │  ├─ layout.tsx
+│  │  └─ page.tsx
+│  ├─ components
+│  │  ├─ books
+│  │  │  ├─ book-card.tsx
+│  │  │  ├─ delete-confirmation.tsx
+│  │  │  ├─ delete-review-confirmation.tsx
+│  │  │  ├─ review-form.tsx
+│  │  │  ├─ review-item.tsx
+│  │  │  ├─ review-list.tsx
+│  │  │  ├─ review-section.tsx
+│  │  │  └─ search-and-filter.tsx
+│  │  ├─ dashboard
+│  │  │  ├─ recent-books.tsx
+│  │  │  └─ stats-card.tsx
+│  │  ├─ layout
+│  │  │  ├─ header.tsx
+│  │  │  ├─ main-layout.tsx
+│  │  │  └─ sidebar.tsx
+│  │  ├─ providers
+│  │  │  └─ auth-provider.tsx
+│  │  └─ ui
+│  │     ├─ button.tsx
+│  │     └─ loading-spinner.tsx
+│  ├─ hooks
+│  │  ├─ use-auth.ts
+│  │  ├─ use-redirect-if-authenticated.ts
+│  │  └─ use-require-auth.ts
+│  └─ lib
+│     ├─ auth.ts
+│     ├─ prisma.ts
+│     ├─ services
+│     │  ├─ book-service-server.ts
+│     │  ├─ book-service.ts
+│     │  ├─ dashboard-service-server.ts
+│     │  ├─ dashboard-service.ts
+│     │  ├─ google-books-service.ts
+│     │  ├─ loan-service.ts
+│     │  ├─ review-service-server.ts
+│     │  └─ review-service.ts
+│     └─ utils.ts
+└─ tsconfig.json
+
+```

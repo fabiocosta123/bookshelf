@@ -12,10 +12,10 @@ export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   secret: process.env.NEXTAUTH_SECRET,
   session: {
-    strategy: "database",
+    strategy: "jwt",
   },
   pages: {
-    signIn: "/auth/login",
+    signIn: "/login",
     signOut: "/auth/logout",
     error: "/auth/error",
   },
