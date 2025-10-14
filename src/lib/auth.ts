@@ -73,53 +73,59 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
 
-  // 🔁 Callbacks
+  // Callbacks
   callbacks: {
-    async session({ session, user }) {
-      if (!user?.id) return session;
+    async session({ session, token }) {
+      if (!session.user) session.user = {} as any;
 
+      session.user.id = (token as any).id ?? session.user.id;
+      session.user.email = (token as any).email ?? session.user.email;
+      session.user.name = (token as any).name ?? session.user.name;
+      session.user.image = (token as any).picture ?? session.user.image;
+      session.user.role = (token as any).role ?? session.user.role;
+      session.user.status = (token as any).status ?? session.user.status;
+
+      // Atualiza com DB copy quando possível
       try {
-        const dbUser = await prisma.user.findUnique({
-          where: { id: user.id },
-          select: {
-            id: true,
-            email: true,
-            name: true,
-            image: true,
-            role: true,
-            status: true,
-          },
-        });
-
-        if (dbUser) {
-          session.user = {
-            id: dbUser.id,
-            email: dbUser.email,
-            name: dbUser.name,
-            image: dbUser.image ?? undefined,
-            role: dbUser.role,
-            status: dbUser.status,
-          };
+        if (session.user.id) {
+          const dbUser = await prisma.user.findUnique({
+            where: { id: session.user.id },
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              image: true,
+              role: true,
+              status: true,
+            },
+          });
+          if (dbUser) {
+            session.user = {
+              id: dbUser.id,
+              email: dbUser.email,
+              name: dbUser.name,
+              image: dbUser.image ?? undefined,
+              role: dbUser.role,
+              status: dbUser.status,
+            } as any;
+          }
         }
-      } catch (error) {
-        console.error("❌ Erro ao buscar usuário no banco:", error);
+      } catch (e) {
+        console.error("Erro ao sincronizar sessão com DB:", e);
       }
 
       return session;
     },
 
-    async jwt({
-      token,
-      user,
-      account,
-    }: {
-      token: JWT;
-      user?: User;
-      account?: Account | null;
-    }): Promise<JWT> {
+    async jwt({ token, user, account }) {
       if (user) {
-        token.role = (user as any).role;
-        token.status = (user as any).status;
+        // Na primeira geração de token, popula campos vindos do user
+        token.id = (user as any).id ?? token.id;
+        token.email = (user as any).email ?? token.email;
+        token.name = (user as any).name ?? token.name;
+        token.picture = (user as any).image ?? token.picture;
+        token.role = (user as any).role ?? token.role;
+        token.status = (user as any).status ?? token.status;
       }
       return token;
     },
