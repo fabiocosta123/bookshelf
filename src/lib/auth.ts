@@ -117,6 +117,27 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
 
+    // Dentro de authOptions.callbacks
+async redirect(params: any) {
+  const { url, baseUrl, token, account } = params
+  // Se não houver token ainda, usa baseUrl
+  const role = (token as any)?.role ?? undefined;
+
+  // Login via Google ou qualquer OAuth: role normalmente será CLIENT (default)
+  if (account?.provider === 'google') {
+    if (role === 'CLIENT') return `${baseUrl}/client/dashboard`;
+    return `${baseUrl}/dashboard`;
+  }
+
+  // Login via Credentials (admin/employee) — mantém destino admin por padrão
+  if (role === 'ADMIN' || role === 'EMPLOYEE') {
+    return `${baseUrl}/dashboard`;
+  }
+
+  // fallback: mantém a URL pedida ou baseUrl
+  return url.startsWith(baseUrl) ? url : baseUrl;
+},
+
     async jwt({ token, user, account }) {
       if (user) {
         // Na primeira geração de token, popula campos vindos do user

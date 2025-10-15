@@ -351,7 +351,7 @@ export class LoanService {
     }
   }
 
-  // 🚫 REJEITAR EMPRÉSTIMO (FUNCIONÁRIO/ADMIN)
+  // REJEITAR EMPRÉSTIMO (FUNCIONÁRIO/ADMIN)
   async rejectLoan(loanId: string, employeeId: string, rejectionReason: string) {
     try {
       const loan = await prisma.loan.findUnique({
@@ -407,7 +407,7 @@ export class LoanService {
     }
   }
 
-  // ❌ CANCELAR SOLICITAÇÃO (CLIENTE)
+  //  CANCELAR SOLICITAÇÃO (CLIENTE)
   async cancelLoan(loanId: string, userId: string) {
     try {
       const loan = await prisma.loan.findUnique({
@@ -613,7 +613,7 @@ export class LoanService {
     }
   }
 
-  // ⚠️ ATUALIZAR EMPRÉSTIMOS ATRASADOS (CRON JOB)
+  // ATUALIZAR EMPRÉSTIMOS ATRASADOS (CRON JOB)
   async updateOverdueLoans() {
     try {
       const now = new Date();
