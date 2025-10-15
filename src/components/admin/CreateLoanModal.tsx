@@ -103,7 +103,7 @@ export function CreateLoanModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Criar Empréstimo (Admin)</DialogTitle>
+          <DialogTitle>Criar Empréstimo</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
