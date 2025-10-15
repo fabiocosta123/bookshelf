@@ -1,13 +1,15 @@
-'use client';
+"use client";
 
-import { useParams, useRouter } from 'next/navigation';
-import { useAuth } from '@/hooks/use-auth';
-import { useRequireAuth } from '@/hooks/use-require-auth';
-import { useEffect, useState } from 'react';
-import { Book, ArrowLeft, Star } from 'lucide-react';
-import Link from 'next/link';
-import { ReviewSection } from '@/components/books/review-section';
-import { toast } from 'sonner';
+import { useParams, useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/use-auth";
+import { useRequireAuth } from "@/hooks/use-require-auth";
+import { useEffect, useState } from "react";
+import { Book, ArrowLeft, Star } from "lucide-react";
+import Link from "next/link";
+import { ReviewSection } from "@/components/books/review-section";
+import { toast } from "sonner";
+import { CreateLoanModal } from "@/components/admin/CreateLoanModal";
+import { Edit, UserPlus} from 'lucide-react';
 
 interface BookDetail {
   id: string;
@@ -33,12 +35,14 @@ export default function BookDetailPage() {
   const { isClient } = useAuth();
   const params = useParams();
   const router = useRouter();
-  
+
   const [book, setBook] = useState<BookDetail | null>(null);
   const [loading, setLoading] = useState(true);
 
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [isRequestingLoan, setIsRequestingLoan] = useState(false);
+
+  const [openCreateModal, setOpenCreateModal] = useState(false);
 
   useEffect(() => {
     async function loadBook() {
@@ -46,16 +50,16 @@ export default function BookDetailPage() {
         const response = await fetch(`/api/books/${params.id}`);
         if (!response.ok) {
           if (response.status === 404) {
-            router.push('/404');
+            router.push("/404");
             return;
           }
-          throw new Error('Erro ao carregar livro');
+          throw new Error("Erro ao carregar livro");
         }
         const bookData = await response.json();
         setBook(bookData);
       } catch (error) {
-        console.error('Erro ao carregar livro:', error);
-        router.push('/books');
+        console.error("Erro ao carregar livro:", error);
+        router.push("/books");
       } finally {
         setLoading(false);
       }
@@ -69,40 +73,40 @@ export default function BookDetailPage() {
     if (!book) return;
 
     try {
-      setIsRequestingLoan(true)
+      setIsRequestingLoan(true);
 
-      const response = await fetch('/api/loans', {
-        method: 'POST',
+      const response = await fetch("/api/loans", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           bookId: book.id,
-          userNotes: ''
-        })
-      })
+          userNotes: "",
+        }),
+      });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Erro ao solicitar empréstimo')
+        throw new Error(data.error || "Erro ao solicitar empréstimo");
       }
 
-      toast.success('Solicitação de empréstimo enviada com sucesso!');
+      toast.success("Solicitação de empréstimo enviada com sucesso!");
 
       // atualiza os dados do livro para futura mudança
-      const updatedResponse = await fetch(`/api/books/${params.id}`)
+      const updatedResponse = await fetch(`/api/books/${params.id}`);
       if (updatedResponse.ok) {
         const updatedBook = await updatedResponse.json();
-        setBook(updatedBook)
+        setBook(updatedBook);
       }
-    }catch (error: any) {
-      console.error('Erro ao solicitar empréstimo:', error)
-      toast.error(error.message)
-    }finally {
-      setIsRequestingLoan(false)
+    } catch (error: any) {
+      console.error("Erro ao solicitar empréstimo:", error);
+      toast.error(error.message);
+    } finally {
+      setIsRequestingLoan(false);
     }
-  }
+  };
 
   if (loading) {
     return (
@@ -115,7 +119,9 @@ export default function BookDetailPage() {
   if (!book) {
     return (
       <div className="text-center py-16">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">Livro não encontrado</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-4">
+          Livro não encontrado
+        </h1>
         <Link href="/books" className="text-blue-600 hover:text-blue-700">
           Voltar para a biblioteca
         </Link>
@@ -129,14 +135,14 @@ export default function BookDetailPage() {
     <div className="max-w-4xl mx-auto">
       {/* Header */}
       <div className="mb-6">
-        <Link 
+        <Link
           href="/books"
           className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-4"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Voltar para Biblioteca
         </Link>
-        
+
         <h1 className="text-3xl font-bold text-gray-900">{book.title}</h1>
         <p className="text-gray-600 mt-2">por {book.author}</p>
       </div>
@@ -163,10 +169,14 @@ export default function BookDetailPage() {
             <div className="space-y-3">
               <div className="flex justify-between">
                 <span className="text-gray-600">Disponibilidade:</span>
-                <span className={`font-medium ${
-                  isAvailable ? 'text-green-600' : 'text-red-600'
-                }`}>
-                  {isAvailable ? `${book.available_copies} disponível` : 'Indisponível'}
+                <span
+                  className={`font-medium ${
+                    isAvailable ? "text-green-600" : "text-red-600"
+                  }`}
+                >
+                  {isAvailable
+                    ? `${book.available_copies} disponível`
+                    : "Indisponível"}
                 </span>
               </div>
 
@@ -194,7 +204,7 @@ export default function BookDetailPage() {
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-white rounded-lg shadow-sm border p-6">
             <h2 className="text-xl font-semibold mb-4">Detalhes do Livro</h2>
-            
+
             <div className="grid grid-cols-2 gap-4 mb-6">
               {book.genre && (
                 <div>
@@ -202,25 +212,25 @@ export default function BookDetailPage() {
                   <p className="font-medium">{book.genre}</p>
                 </div>
               )}
-              
+
               {book.year && (
                 <div>
                   <span className="text-gray-600">Ano:</span>
                   <p className="font-medium">{book.year}</p>
                 </div>
               )}
-              
+
               {book.pages && (
                 <div>
                   <span className="text-gray-600">Páginas:</span>
                   <p className="font-medium">{book.pages}</p>
                 </div>
               )}
-              
+
               <div>
                 <span className="text-gray-600">Status:</span>
                 <p className="font-medium capitalize">
-                  {book.reading_status.toLowerCase().replace('_', ' ')}
+                  {book.reading_status.toLowerCase().replace("_", " ")}
                 </p>
               </div>
             </div>
@@ -236,18 +246,19 @@ export default function BookDetailPage() {
             <div className="flex space-x-4 pt-6 border-t border-gray-200">
               {isClient ? (
                 <>
-                 
                   {isAvailable && (
-                    <button 
+                    <button
                       onClick={handleLoanRequest}
                       disabled={isRequestingLoan}
                       className={`px-6 py-2 rounded-lg transition-colors ${
-                        isRequestingLoan 
-                          ? 'bg-gray-400 cursor-not-allowed' 
-                          : 'bg-green-600 hover:bg-green-700 cursor-pointer'
+                        isRequestingLoan
+                          ? "bg-gray-400 cursor-not-allowed"
+                          : "bg-green-600 hover:bg-green-700 cursor-pointer"
                       } text-white`}
                     >
-                      {isRequestingLoan ? 'Solicitando...' : 'Solicitar Empréstimo'}
+                      {isRequestingLoan
+                        ? "Solicitando..."
+                        : "Solicitar Empréstimo"}
                     </button>
                   )}
                 </>
@@ -257,23 +268,43 @@ export default function BookDetailPage() {
                     href={`/books/${book.id}/edit`}
                     className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors"
                   >
-                    Editar Livro
+                    <button className="...">
+  <Edit className="h-4 w-4 mr-2" />
+  Editar Livro
+</button>
+
                   </Link>
-                  {/* <button className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors">
-                    Excluir Livro
-                  </button> */}
+                  <button
+                    onClick={() => setOpenCreateModal(true)}
+                    className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
+                  >
+                     <UserPlus className="h-4 w-4 mr-2" />
+                    Criar Empréstimo
+                  </button>
+
+                  <CreateLoanModal
+                    bookId={book.id}
+                    open={openCreateModal}
+                    onOpenChange={setOpenCreateModal}
+                    onCreated={async () => {
+                      // atualiza os dados do livro após criação do empréstimo
+                      const updatedResp = await fetch(
+                        `/api/books/${params.id}`
+                      );
+                      if (updatedResp.ok) setBook(await updatedResp.json());
+                    }}
+                  />
                 </>
               )}
-              
             </div>
           </div>
 
           {/* Seção de Observações (apenas para clientes) */}
           {isClient && (
-            <ReviewSection 
-              bookId={book.id} 
-              showFormInitially={showReviewForm} 
-              onFormClose={() => setShowReviewForm(false)} 
+            <ReviewSection
+              bookId={book.id}
+              showFormInitially={showReviewForm}
+              onFormClose={() => setShowReviewForm(false)}
             />
           )}
         </div>
