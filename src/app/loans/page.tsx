@@ -6,7 +6,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { LoansList, type LoanItem } from "@/components/loans/LoansList";
-import { Toaster, toast} from "sonner";
+import { Toaster, toast } from "sonner";
 
 type ApiLoansResponse = {
   loans: LoanItem[];
@@ -22,6 +22,13 @@ export default function LoansPage() {
   const [page, setPage] = React.useState(1);
   const [pageSize] = React.useState(12);
   const [filterMine, setFilterMine] = React.useState(true);
+
+  // modal para rejeição
+  const [rejectModalOpen, setRejectModalOpen] = React.useState(false);
+  const [rejectingLoanId, setRejectingLoanId] = React.useState<string | null>(
+    null
+  );
+  const [rejectReason, setRejectReason] = React.useState("");
 
   const fetchLoans = React.useCallback(
     async (opts?: { page?: number; size?: number; mine?: boolean }) => {
@@ -42,12 +49,11 @@ export default function LoansPage() {
         });
 
         if (!res.ok) {
-          const text = await res.text().catch(() => ""); 
+          const text = await res.text().catch(() => "");
           throw new Error(text || `Falha ao carregar (${res.status})`);
         }
         const json: ApiLoansResponse = await res.json();
         setLoans(json.loans ?? []);
-
       } catch (err: any) {
         setError(err?.message ?? "Erro ao carregar empréstimos");
         setLoans([]);
@@ -59,7 +65,7 @@ export default function LoansPage() {
   );
 
   React.useEffect(() => {
-    fetchLoans({ page, size: pageSize, mine: filterMine });    
+    fetchLoans({ page, size: pageSize, mine: filterMine });
   }, [page, pageSize, filterMine]);
 
   const refreshAndReload = React.useCallback(async () => {
@@ -72,18 +78,19 @@ export default function LoansPage() {
 
     try {
       const j = await res.json().catch(() => null);
-      if (j && typeof j === "object" && "error" in j) msg = String((j as any).error)
+      if (j && typeof j === "object" && "error" in j)
+        msg = String((j as any).error);
     } catch {}
 
     try {
       if (msg.startsWith("Erro")) {
-        const txt = await res.text().catch(() => "")
-        if (txt) msg = txt
+        const txt = await res.text().catch(() => "");
+        if (txt) msg = txt;
       }
     } catch {}
 
-    return msg
-  }
+    return msg;
+  };
 
   const onApprove = React.useCallback(
     async (loanId: string) => {
@@ -95,89 +102,95 @@ export default function LoansPage() {
         const res = await fetch(`/api/loans/${loanId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "approve"}),
+          body: JSON.stringify({ action: "approve" }),
           cache: "no-store",
           credentials: "same-origin",
         });
 
         if (!res.ok) {
           const msg = await readErrorMessage(res);
-          toast.error(msg)
-          setError(msg)
-          return
+          toast.error(msg);
+          setError(msg);
+          return;
         }
 
         toast.success("Empréstimo aprovado");
         await refreshAndReload();
-
       } catch (err: any) {
         const message = err?.message ?? "Erro ao aprovar empréstimo";
-        toast.error(message)
+        toast.error(message);
         setError(message);
       } finally {
-        toast.dismiss(toastId)
+        toast.dismiss(toastId);
         setLoading(false);
       }
     },
     [refreshAndReload]
   );
 
-  const onReject = React.useCallback(
-    async (loanId: string) => {
-      const reason = window.prompt("Motivo da rejeição (obrigatório):", "Rejeitado pelo Administrador" )
-      if (reason === null) {
-        toast.error("Rejeição cancelada")
-        return;
-      }
-
-      const rejectionReason = String(reason).trim();
-      if (!rejectionReason) {
-        toast.error("Rejeição cancelada: motivo obrigatório")
-        setError("Rejeição cancelada: motivo obrigatório")
-        return
-      }
-
+  const onRejectConfirmed = React.useCallback(
+    async (loanId: string, rejectionReason: string) => {
       setLoading(true);
       setError(null);
       const toastId = toast.loading("Registrando rejeição...");
-
       try {
         const res = await fetch(`/api/loans/${loanId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "reject", rejectionReason}),
+          body: JSON.stringify({ action: "reject", rejectionReason }),
           cache: "no-store",
           credentials: "same-origin",
         });
 
         if (!res.ok) {
           const msg = await readErrorMessage(res);
-          toast.error(msg)
-          setError(msg)
-          return
+          toast.error(msg);
+          setError(msg);
+          return;
         }
 
-        toast.success("Empréstimo rejeitado")
+        toast.success("Empréstimo rejeitado");
         await refreshAndReload();
-        
       } catch (err: any) {
-        const message =  err?.message ?? "Erro ao rejeitar empréstimo";
-        toast.error(message)
-        setError(message)
-
+        const message = err?.message ?? "Erro ao rejeitar empréstimo";
+        toast.error(message);
+        setError(message);
       } finally {
-        toast.dismiss(toastId)
+        toast.dismiss(toastId);
         setLoading(false);
       }
     },
     [refreshAndReload]
   );
+
+  const openRejectModal = React.useCallback((loanId: string) => {
+    setRejectingLoanId(loanId);
+    setRejectReason("");
+    setRejectModalOpen(true);
+  }, []);
+
+  const closeRejectModal = React.useCallback(() => {
+    setRejectModalOpen(false);
+    setRejectingLoanId(null);
+    setRejectReason("");
+  }, []);
+
+  const confirmReject = React.useCallback(async () => {
+    if (!rejectingLoanId) return;
+    const reason = String(rejectReason || "").trim();
+    if (!reason) {
+      toast.error("Motivo obrigatório");
+      return;
+    }
+    closeRejectModal();
+    await onRejectConfirmed(rejectingLoanId, reason);
+  }, [rejectReason, rejectingLoanId, closeRejectModal, onRejectConfirmed]);
 
   return (
     <main className="min-h-screen bg-slate-50 w-full">
       <div className="w-full max-w-4xl mx-auto px-4 py-6">
         <Toaster position="top-right" richColors closeButton />
-        
+
         {/* Header */}
         <header className="flex items-start justify-between gap-4 mb-4">
           <div>
@@ -272,7 +285,9 @@ export default function LoansPage() {
             <LoansList
               loans={loans}
               onApprove={onApprove}
-              onReject={onReject}
+              onReject={(id: string) => {
+                openRejectModal(id);
+              }}
             />
 
             <div className="mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -304,6 +319,56 @@ export default function LoansPage() {
           </>
         )}
       </div>
+
+      {/* Modal rejeição */}
+      {rejectModalOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="reject-modal-title"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        >
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={closeRejectModal}
+            aria-hidden="true"
+          />
+          <div className="relative bg-white rounded-lg w-full max-w-lg p-6 shadow-lg z-10">
+            <h2 id="reject-modal-title" className="text-lg font-semibold mb-2">
+              Rejeitar solicitação
+            </h2>
+            <p className="text-sm text-gray-600 mb-4">
+              Informe o motivo da rejeição.
+            </p>
+
+            <label className="block">
+              <textarea
+                autoFocus
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                rows={4}
+                className="w-full border rounded-md p-2 text-sm resize-y"
+                placeholder="Motivo da rejeição"
+                aria-label="Motivo da rejeição"
+              />
+            </label>
+
+            <div className="mt-4 flex justify-end gap-2">
+              <Button variant="ghost" size="sm" onClick={closeRejectModal}>
+                Cancelar
+              </Button>
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={confirmReject}
+                disabled={loading}
+              >
+                Confirmar rejeição
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
