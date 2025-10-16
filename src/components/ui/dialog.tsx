@@ -1,17 +1,28 @@
 "use client";
 import React from "react";
+import { createPortal } from "react-dom";
 
 export function Dialog({ children, open, onOpenChange }: any) {
-  // Componente wrapper simples; shadcn tem <Dialog> controlando portal/overlay.
-  return <div data-dialog-root>{children}</div>;
+  if (!open) return null;
+
+  // onOpenChange pode ser chamado para fechar (ex.: clicando no overlay)
+  return typeof window !== "undefined"
+    ? createPortal(
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black/50"
+            onClick={() => onOpenChange?.(false)}
+            data-dialog-overlay
+          />
+          <div className="relative z-10 w-full max-w-2xl p-4">{children}</div>
+        </div>,
+        document.body
+      )
+    : null;
 }
 
 export function DialogContent({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return (
-    <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${className}`}>
-      <div className="bg-white rounded-lg shadow-lg max-w-lg w-full">{children}</div>
-    </div>
-  );
+  return <div className={`bg-white rounded-lg shadow-lg overflow-hidden ${className}`}>{children}</div>;
 }
 
 export function DialogHeader({ children }: { children: React.ReactNode }) {

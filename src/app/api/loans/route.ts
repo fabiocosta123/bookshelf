@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { loanService } from "@/lib/services/loan-service";
 import type { Session } from "next-auth";
+import { prisma } from '@/lib/prisma';
 
 const getSessionTyped = async (): Promise<Session | null> => {
     return (await getServerSession(authOptions as any)) as Session | null
@@ -48,33 +49,67 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
-  try {
-    const session = await getSessionTyped();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
-    }
-
-    const body = await request.json().catch(() => ({}));
-    const { bookId, userNotes } = body as { bookId?: string; userNotes?: string };
-
-    if (!bookId) {
-      return NextResponse.json({ error: "ID do livro é obrigatório." }, { status: 400 });
-    }
-
-    try {
-      const loan = await loanService.createLoan({
-        bookId,
-        userId: session.user.id,
-        userNotes,
-      });
-      return NextResponse.json(loan, { status: 201 });
-    } catch (err: any) {
-      console.error("Erro ao criar empréstimo (service):", err);
-      return NextResponse.json({ error: err?.message || "Erro ao criar empréstimo" }, { status: 400 });
-    }
-  } catch (error: any) {
-    console.error("POST /api/loans error:", error);
-    return NextResponse.json({ error: error?.message ?? "Erro interno" }, { status: 500 });
+export async function POST(req: NextRequest) {
+  const session = await getSessionTyped();
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   }
+
+  const body = await req.json().catch(() => ({}));
+  const callerRole = (session.user as any).role as string | undefined;
+  const isStaff = callerRole === "ADMIN" || callerRole === "EMPLOYEE";
+
+  
+  const targetUserId = isStaff && body.userId ? String(body.userId) : String(session.user.id);
+  const bookId = String(body.bookId);
+
+  
+  const book = await prisma.book.findUnique({ where: { id: bookId } });
+  if (!book) return NextResponse.json({ error: "Livro não encontrado" }, { status: 404 });
+
+  const targetUser = await prisma.user.findUnique({ where: { id: targetUserId } });
+  if (!targetUser) return NextResponse.json({ error: "Usuário alvo não encontrado" }, { status: 404 });
+
+  // cria emprestimo e registra quem fez
+  const created = await prisma.loan.create({
+    data: {
+      bookId,
+      userId: targetUserId,
+      status: "PENDING", 
+      userNotes: body.userNotes ?? null,
+      approvedById: session.user.id as string, 
+    },
+  });
+
+  // cria notificação cliente sobre a solicitação
+  await prisma.notification.create({
+    data: {
+      userId: targetUserId,
+      title: "Nova solicitação de empréstimo",
+      message: `${session.user.name ?? "Administrador"} solicitou o livro "${book.title}" em seu nome.`,
+      type: "NEW_LOAN_REQUEST",
+      relatedLoanId: created.id,
+    },
+  });
+
+
+  // cria notificação admin
+  await prisma.notification.create({
+    data: {
+      userId: session.user.id as string,
+      title: "Solicitação enviada",
+      message: `Solicitação de empréstimo para "${book.title}" enviada para ${targetUser.name ?? targetUser.email}.`,
+      type: "SYSTEM",
+      relatedLoanId: created.id,
+    },
+  });
+
+
+  // return the created loan including relations so client can reflect state
+  const loanWithRelations = await prisma.loan.findUnique({
+    where: { id: created.id },
+    include: { user: true, book: true, approvedBy: true },
+  });
+
+  return NextResponse.json(loanWithRelations);
 }

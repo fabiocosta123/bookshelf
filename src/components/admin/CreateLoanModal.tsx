@@ -141,7 +141,7 @@ export function CreateLoanModal({
           </div>
 
           <div>
-            <Label>Observações (employeeNotes)</Label>
+            <Label>Observações</Label>
             <Input value={notes} onChange={(e) => setNotes(e.target.value)} />
           </div>
         </div>
