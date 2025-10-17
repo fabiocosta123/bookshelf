@@ -19,7 +19,8 @@ function formatDate(value?: string | Date | null) {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
-    minute: "2-digit",
+    hour:"2-digit",
+    minute:"2-digit"
   });
 }
 
@@ -149,8 +150,6 @@ export default async function LoanDetailsPage({ params} : Props) {
                     </div>
                   </div>
 
-                  {/* <div className="text-xs text-gray-500">ID</div>
-                  <div className="mt-1 text-xs text-gray-600 break-words">{loan.id}</div> */}
                 </div>
               </aside>
             </div>

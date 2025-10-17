@@ -105,7 +105,7 @@ export async function POST(req: NextRequest) {
   });
 
 
-  // return the created loan including relations so client can reflect state
+  
   const loanWithRelations = await prisma.loan.findUnique({
     where: { id: created.id },
     include: { user: true, book: true, approvedBy: true },

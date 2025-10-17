@@ -5,15 +5,8 @@ import { useRouter, useParams } from "next/navigation";
 import { ArrowLeft, Save, BookOpen, Search } from "lucide-react";
 import Link from "next/link";
 import { GENRES } from "@/lib/services/book-service";
-import { ReadingStatus } from "@prisma/client/edge";
-
-interface Review {
-  id: string;
-  content: string;
-  page?: number;
-  isPrivate: boolean;
-  user?: { name?: string };
-}
+import { ReadingStatus } from "@prisma/client";
+import { Toaster, toast } from "sonner";
 
 interface Book {
   id: string;
@@ -54,11 +47,14 @@ export default function EditBookPage() {
     isbn: "",
   });
 
-  // Carregar dados do livro
   useEffect(() => {
     const loadBook = async () => {
+      setIsLoadingBook(true);
       try {
-        const response = await fetch(`/api/books/${bookId}`);
+        const response = await fetch(`/api/books/${bookId}`, {
+          cache: "no-store",
+          credentials: "same-origin",
+        });
 
         if (!response.ok) {
           throw new Error("Livro não encontrado");
@@ -67,25 +63,26 @@ export default function EditBookPage() {
         const book: Book = await response.json();
 
         setFormData({
-          title: book.title,
-          author: book.author,
+          title: book.title || "",
+          author: book.author || "",
           genre: book.genre || "",
           year: book.year?.toString() || "",
           pages: book.pages?.toString() || "",
-          total_copies: book.total_copies.toString(),
+          total_copies: book.total_copies?.toString() || "1",
           rating: book.rating?.toString() || "",
           synopsis: book.synopsis || "",
           cover: book.cover || "",
-          reading_status: book.reading_status,
+          reading_status: book.reading_status || ("QUERO_LER" as ReadingStatus),
           isbn: book.isbn || "",
         });
 
         if (book.cover) {
           setCoverPreview(book.cover);
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error("Erro ao carregar livro:", error);
         setErrors({ submit: "Erro ao carregar dados do livro" });
+        toast.error("Erro ao carregar dados do livro");
       } finally {
         setIsLoadingBook(false);
       }
@@ -95,9 +92,7 @@ export default function EditBookPage() {
   }, [bookId]);
 
   const handleInputChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -124,8 +119,7 @@ export default function EditBookPage() {
 
     if (
       formData.year &&
-      (Number(formData.year) < 1000 ||
-        Number(formData.year) > new Date().getFullYear())
+      (Number(formData.year) < 1000 || Number(formData.year) > new Date().getFullYear())
     ) {
       newErrors.year = "Ano inválido";
     }
@@ -153,11 +147,18 @@ export default function EditBookPage() {
     if (!formData.isbn) return;
 
     setIsLoading(true);
+    const toastId = toast.loading("Buscando informações por ISBN...");
     try {
+      // Placeholder: integrar com Google Books API se desejar
+      // Exemplo: fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${formData.isbn}`)
+      // Aqui apenas logamos por enquanto
       console.log("Buscando livro por ISBN:", formData.isbn);
+      toast.success("Busca por ISBN concluída (implemente integração)");
     } catch (error) {
       console.error("Erro ao buscar livro:", error);
+      toast.error("Erro ao buscar por ISBN");
     } finally {
+      toast.dismiss(toastId);
       setIsLoading(false);
     }
   };
@@ -169,9 +170,8 @@ export default function EditBookPage() {
       return;
     }
 
-    console.log("📝 Atualizando livro:", formData);
     setIsLoading(true);
-
+    const toastId = toast.loading("Atualizando livro...");
     try {
       const response = await fetch(`/api/books/${bookId}`, {
         method: "PUT",
@@ -179,27 +179,39 @@ export default function EditBookPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(formData),
+        credentials: "same-origin",
+        cache: "no-store",
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Erro ao atualizar livro");
+        let errorMessage = "Erro ao atualizar livro";
+        try {
+          const contentType = response.headers.get("Content-Type");
+          if (contentType?.includes("application/json")) {
+            const errorData = await response.json();
+            errorMessage = errorData?.error || errorMessage;
+          } else {
+            const text = await response.text().catch(() => "");
+            if (text) errorMessage = text;
+          }
+        } catch (err) {
+          console.warn("Falha ao ler erro da API", err);
+        }
+        throw new Error(errorMessage);
       }
 
       const result = await response.json();
-      console.log("✅ Livro atualizado com sucesso:", result);
-
+      toast.success("Livro atualizado com sucesso");
       router.push(`/books/${bookId}`);
       router.refresh();
-    } catch (error) {
+    } catch (error: any) {
       console.error("❌ Erro ao atualizar livro:", error);
       setErrors({
-        submit:
-          error instanceof Error
-            ? error.message
-            : "Erro ao atualizar livro. Tente novamente.",
+        submit: error instanceof Error ? error.message : "Erro ao atualizar livro. Tente novamente.",
       });
+      toast.error(error?.message ?? "Erro ao atualizar livro");
     } finally {
+      toast.dismiss(toastId);
       setIsLoading(false);
     }
   };
@@ -217,6 +229,7 @@ export default function EditBookPage() {
 
   return (
     <div>
+      <Toaster position="top-right" richColors closeButton />
       <div className="flex items-center justify-between mb-8">
         <Link
           href={`/books/${bookId}`}
@@ -239,9 +252,7 @@ export default function EditBookPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Título *
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Título *</label>
                 <input
                   type="text"
                   name="title"
@@ -252,15 +263,11 @@ export default function EditBookPage() {
                   }`}
                   placeholder="Título do livro"
                 />
-                {errors.title && (
-                  <p className="text-red-500 text-sm mt-1">{errors.title}</p>
-                )}
+                {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title}</p>}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Autor *
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Autor *</label>
                 <input
                   type="text"
                   name="author"
@@ -271,15 +278,11 @@ export default function EditBookPage() {
                   }`}
                   placeholder="Nome do autor"
                 />
-                {errors.author && (
-                  <p className="text-red-500 text-sm mt-1">{errors.author}</p>
-                )}
+                {errors.author && <p className="text-red-500 text-sm mt-1">{errors.author}</p>}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Gênero
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Gênero</label>
                 <select
                   name="genre"
                   value={formData.genre}
@@ -296,9 +299,7 @@ export default function EditBookPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Status
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
                 <select
                   name="reading_status"
                   value={formData.reading_status}
@@ -314,9 +315,7 @@ export default function EditBookPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Ano
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Ano</label>
                 <input
                   type="number"
                   name="year"
@@ -327,15 +326,11 @@ export default function EditBookPage() {
                   }`}
                   placeholder="2024"
                 />
-                {errors.year && (
-                  <p className="text-red-500 text-sm mt-1">{errors.year}</p>
-                )}
+                {errors.year && <p className="text-red-500 text-sm mt-1">{errors.year}</p>}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Páginas
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Páginas</label>
                 <input
                   type="number"
                   name="pages"
@@ -346,23 +341,18 @@ export default function EditBookPage() {
                   }`}
                   placeholder="300"
                 />
-                {errors.pages && (
-                  <p className="text-red-500 text-sm mt-1">{errors.pages}</p>
-                )}
+                {errors.pages && <p className="text-red-500 text-sm mt-1">{errors.pages}</p>}
               </div>
             </div>
           </div>
 
-          {/* Resto do formulário (igual ao de criação) */}
-          {/* ... Copie as seções de Capa/ISBN e Informações Adicionais do formulário de criação ... */}
+          {/* Capa e Identificação */}
           <div className="bg-white rounded-lg border p-6">
             <h2 className="text-xl font-semibold mb-4">Capa e Identificação</h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  ISBN
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">ISBN</label>
                 <div className="flex gap-2">
                   <input
                     type="text"
@@ -384,9 +374,7 @@ export default function EditBookPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  URL da Capa
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">URL da Capa</label>
                 <input
                   type="url"
                   name="cover"
@@ -397,14 +385,79 @@ export default function EditBookPage() {
                 />
               </div>
             </div>
+
+            {coverPreview && (
+              <div className="mt-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Preview da Capa</label>
+                <div className="w-32 h-48 bg-gray-200 rounded-lg overflow-hidden">
+                  <img
+                    src={coverPreview}
+                    alt="Preview"
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Informações Adicionais */}
+          <div className="bg-white rounded-lg border p-6">
+            <h2 className="text-xl font-semibold mb-4">Informações Adicionais</h2>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Cópias *</label>
+                <input
+                  type="number"
+                  name="total_copies"
+                  value={formData.total_copies}
+                  onChange={handleInputChange}
+                  className={`w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 ${
+                    errors.total_copies ? "border-red-500" : "border-gray-300"
+                  }`}
+                  min="1"
+                />
+                {errors.total_copies && <p className="text-red-500 text-sm mt-1">{errors.total_copies}</p>}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Avaliação</label>
+                <input
+                  type="number"
+                  name="rating"
+                  value={formData.rating}
+                  onChange={handleInputChange}
+                  className={`w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 ${
+                    errors.rating ? "border-red-500" : "border-gray-300"
+                  }`}
+                  min="1"
+                  max="5"
+                  step="0.5"
+                  placeholder="4.5"
+                />
+                {errors.rating && <p className="text-red-500 text-sm mt-1">{errors.rating}</p>}
+              </div>
+            </div>
+
+            <div className="mt-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Sinopse</label>
+              <textarea
+                name="synopsis"
+                value={formData.synopsis}
+                onChange={handleInputChange}
+                rows={4}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                placeholder="Sinopse do livro..."
+              />
+            </div>
           </div>
 
           {/* Botões */}
           <div className="flex justify-end gap-4">
-            <Link
-              href={`/books/${bookId}`}
-              className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
-            >
+            <Link href={`/books/${bookId}`} className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
               Cancelar
             </Link>
             <button
