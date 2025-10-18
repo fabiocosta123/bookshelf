@@ -1,55 +1,49 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { X, Check, ArrowLeft } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { toast, Toaster } from "sonner";
 
 type Props = {
   loanId: string;
-  onSuccess?: () => void;
+  onSuccess?: (updatedLoan?: any) => void;
 };
 
 export default function ReturnLoanModal({ loanId, onSuccess }: Props) {
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [userId, setUserId] = useState<string | null>(null);
-  const [userName, setUserName] = useState<string | null>(null);
   const [returnedAt, setReturnedAt] = useState<string>(() => {
     const now = new Date();
-    return now.toISOString().slice(0, 16); // yyyy-mm-ddThh:mm
+    return now.toISOString().slice(0, 16);
   });
-  const [notes, setNotes] = useState("");
+  const [notes, setNotes] = useState<string>("");
 
-  useEffect(() => {
-    // tenta obter usuário logado via /api/me (ajuste conforme seu app)
-    let cancelled = false;
-    async function fetchMe() {
-      try {
-        const res = await fetch("/api/me", { cache: "no-store" });
-        if (!res.ok) return;
-        const json = await res.json();
-        if (cancelled) return;
-        setUserId(json?.id ?? null);
-        setUserName(json?.name ?? json?.email ?? null);
-      } catch (err) {
-        console.warn("Não foi possível obter usuário logado", err);
+  async function refetchStatsAndEmit() {
+    try {
+      const res = await fetch("/api/dashboard/stats", { cache: "no-store", credentials: "same-origin" });
+      if (!res.ok) return;
+      const stats = await res.json().catch(() => null);
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("dashboard:stats:updated", { detail: stats }));
       }
+    } catch (err) {
+      console.warn("Não foi possível refetch /api/dashboard/stats", err);
     }
-    fetchMe();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!userId) {
-      alert("Usuário não autenticado.");
+    if (!user?.id) {
+      toast.error("Usuário não autenticado.");
       return;
     }
+
     setSubmitting(true);
     try {
       const payload = {
-        returnedById: userId,
+        returnedById: user.id,
         returnedAt: new Date(returnedAt).toISOString(),
         notes: notes.trim() || null,
       };
@@ -63,21 +57,28 @@ export default function ReturnLoanModal({ loanId, onSuccess }: Props) {
       });
 
       if (!res.ok) {
-        const txt = await res.text();
-        throw new Error(txt || "Erro ao processar devolução");
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body?.error || "Erro ao processar devolução");
       }
 
-      // opcional: ler body com dados atualizados
-      const result = await res.json().catch(() => null);
+      const updated = await res.json().catch(() => null);
+
+      await refetchStatsAndEmit();
 
       setOpen(false);
       setNotes("");
-      if (onSuccess) onSuccess();
-      // notificação simples (pode trocar por toast)
-      window.alert("Livro devolvido com sucesso.");
+      if (onSuccess) onSuccess(updated);
+
+      toast.success("Livro devolvido com sucesso");
+
+      // deixa o toast aparecer antes de forçar reload (opcional)
+      setTimeout(() => {
+        // atualiza a página para reconsultar dados server-side; comente se preferir atualizar via evento
+        if (typeof window !== "undefined") window.location.reload();
+      }, 1200);
     } catch (err: any) {
       console.error("Erro ao devolver livro:", err);
-      window.alert(err?.message ?? "Erro ao devolver livro");
+      toast.error(err?.message ?? "Erro ao devolver livro");
     } finally {
       setSubmitting(false);
     }
@@ -85,6 +86,7 @@ export default function ReturnLoanModal({ loanId, onSuccess }: Props) {
 
   return (
     <>
+      <Toaster position="top-right" richColors closeButton />
       <button
         type="button"
         title="Registrar devolução"
@@ -121,8 +123,8 @@ export default function ReturnLoanModal({ loanId, onSuccess }: Props) {
               <div>
                 <label className="text-xs text-gray-500 block">Usuário que devolve</label>
                 <input
-                  className="mt-1 w-full px-3 py-2 border rounded text-sm"
-                  value={userName ?? ""}
+                  className="mt-1 w-full px-3 py-2 border rounded text-sm bg-gray-50"
+                  value={user?.name ?? user?.email ?? ""}
                   readOnly
                 />
               </div>
@@ -134,14 +136,15 @@ export default function ReturnLoanModal({ loanId, onSuccess }: Props) {
                   className="mt-1 w-full px-3 py-2 border rounded text-sm"
                   value={returnedAt}
                   onChange={(e) => setReturnedAt(e.target.value)}
+                  required
                 />
               </div>
 
               <div>
                 <label className="text-xs text-gray-500 block">Devolvido por (responsável)</label>
                 <input
-                  className="mt-1 w-full px-3 py-2 border rounded text-sm"
-                  value={userName ?? ""}
+                  className="mt-1 w-full px-3 py-2 border rounded text-sm bg-gray-50"
+                  value={user?.name ?? user?.email ?? ""}
                   readOnly
                 />
               </div>

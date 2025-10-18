@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import { Toaster } from "sonner";
 import { loanService } from "@/lib/services/loan-service";
 import { prisma } from "@/lib/prisma";
+import ReturnLoanModal from "@/components/loans/ReturnLoanModal";
+
 
 type Props = {
   params: { id: string };
@@ -19,8 +21,8 @@ function formatDate(value?: string | Date | null) {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
-    hour:"2-digit",
-    minute:"2-digit"
+    hour: "2-digit",
+    minute: "2-digit",
   });
 }
 
@@ -50,32 +52,38 @@ async function fetchLoanWithFallback(id: string) {
   return loan;
 }
 
+export default async function LoanDetailsPage({ params }: Props) {
+  const id = params?.id;
+  if (!id) return notFound();
 
-export default async function LoanDetailsPage({ params} : Props) {
-    const id = params?.id;
-    if (!id) return notFound();
+  try {
+    const loan: any = await fetchLoanWithFallback(id);
+    if (!loan) return notFound();
 
-    try {
-        const loan: any = await fetchLoanWithFallback(id)
-        if (!loan) return notFound()
+    const bookTitle = loan.book?.title ?? "Título indisponível";
+    const status = (loan.status ?? "UNKNOWN").toString();
+    const requestedBy =
+      loan.user?.name ?? loan.user?.email ?? "Usuário desconhecido";
+    const dueDate = loan.dueDate ?? null;
+    const decisionBy = loan.approvedBy
+      ? loan.approvedBy.name ?? loan.approvedBy.email
+      : null;
 
-        const bookTitle = loan.book?.title ?? "Título indisponível"
-        const status = (loan.status ?? "UNKNOWN").toString();
-        const requestedBy = loan.user?.name ?? loan.user?.email ?? "Usuário desconhecido"
-        const dueDate = loan.dueDate ?? null
-        const decisionBy = loan.approvedBy ? loan.approvedBy.name ?? loan.approvedBy.email : null
+    // aprovado ou rejeitado se existir
+    const decisionAt = loan.approvedAt ?? loan.rejectedAt ?? null;
+    const notes = loan.userNotes ?? "";
 
-        // aprovado ou rejeitado se existir
-        const decisionAt = loan.approvedAt ?? loan.rejectedAt ?? null
-        const notes = loan.userNotes ?? ""
-
-        return (
+    return (
       <main className="min-h-screen bg-slate-50">
         <div className="w-full max-w-3xl mx-auto px-4 py-8">
           <Toaster position="top-right" richColors closeButton />
           <header className="mb-6">
-            <h1 className="text-2xl font-semibold mb-1">Detalhes do Empréstimo</h1>
-            <p className="text-sm text-gray-600">Informações sobre o empréstimo selecionado</p>
+            <h1 className="text-2xl font-semibold mb-1">
+              Detalhes do Empréstimo
+            </h1>
+            <p className="text-sm text-gray-600">
+              Informações sobre o empréstimo selecionado
+            </p>
           </header>
 
           <section className="bg-white border rounded-lg p-6 shadow-sm">
@@ -111,20 +119,28 @@ export default async function LoanDetailsPage({ params} : Props) {
                   </div>
 
                   <div>
-                    <div className="text-xs text-gray-500">Data de devolução</div>
+                    <div className="text-xs text-gray-500">
+                      Data de devolução
+                    </div>
                     <div className="mt-1">{formatDate(dueDate)}</div>
                   </div>
 
                   <div>
-                    <div className="text-xs text-gray-500">Aprovado/Rejeitado por</div>
+                    <div className="text-xs text-gray-500">
+                      Aprovado/Rejeitado por
+                    </div>
                     <div className="mt-1">{decisionBy ?? "—"}</div>
                   </div>
                 </div>
 
                 {notes ? (
                   <div className="mt-4">
-                    <div className="text-xs text-gray-500">Observações do solicitante</div>
-                    <div className="mt-1 text-sm text-gray-800 whitespace-pre-wrap">{notes}</div>
+                    <div className="text-xs text-gray-500">
+                      Observações do solicitante
+                    </div>
+                    <div className="mt-1 text-sm text-gray-800 whitespace-pre-wrap">
+                      {notes}
+                    </div>
                   </div>
                 ) : null}
 
@@ -147,9 +163,12 @@ export default async function LoanDetailsPage({ params} : Props) {
                       >
                         Voltar
                       </Link>
+
+                      <ReturnLoanModal
+                        loanId={id}                       
+                      />
                     </div>
                   </div>
-
                 </div>
               </aside>
             </div>
@@ -157,9 +176,8 @@ export default async function LoanDetailsPage({ params} : Props) {
         </div>
       </main>
     );
-
-    } catch (error: any) {
-        console.error("Erro ao carregar detalhes do empréstimo", error)
-        return notFound()
-    }
+  } catch (error: any) {
+    console.error("Erro ao carregar detalhes do empréstimo", error);
+    return notFound();
+  }
 }
