@@ -5,6 +5,7 @@ import { Toaster } from "sonner";
 import { loanService } from "@/lib/services/loan-service";
 import { prisma } from "@/lib/prisma";
 import ReturnLoanModal from "@/components/loans/ReturnLoanModal";
+import { STATUS_LABELS_PT } from "@/lib/constants/status-labels";
 
 
 type Props = {
@@ -108,7 +109,7 @@ export default async function LoanDetailsPage({ params }: Props) {
                         }
                         aria-live="polite"
                       >
-                        {status}
+                        {STATUS_LABELS_PT[status] ?? status}
                       </span>
                     </div>
                   </div>
@@ -164,9 +165,7 @@ export default async function LoanDetailsPage({ params }: Props) {
                         Voltar
                       </Link>
 
-                      <ReturnLoanModal
-                        loanId={id}                       
-                      />
+                      <ReturnLoanModal loanId={id} />
                     </div>
                   </div>
                 </div>

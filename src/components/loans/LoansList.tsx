@@ -4,6 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { STATUS_LABELS_PT } from "@/lib/constants/status-labels";
 
 export type LoanItem = {
   id: string;
@@ -11,6 +12,24 @@ export type LoanItem = {
   requestedAt?: string | null;
   book?: { id: string; title?: string; cover?: string | null };
   user?: { id?: string; name?: string | null; email?: string | null };
+};
+
+const STATUS_CLASSES: Record<string, string> = {
+  PENDING: "text-yellow-600",
+  APPROVED: "text-green-600",
+  REJECTED: "text-red-600",
+  RETURNED: "text-blue-600",
+  ACTIVE: "text-indigo-600",
+  OVERDUE: "text-orange-600",
+};
+
+const STATUS_BG_CLASSES: Record<string, string> = {
+  PENDING: "bg-yellow-50 text-yellow-700",
+  APPROVED: "bg-green-50 text-green-700",
+  REJECTED: "bg-red-50 text-red-700",
+  RETURNED: "bg-blue-50 text-blue-700",
+  ACTIVE: "bg-indigo-50 text-indigo-700",
+  OVERDUE: "bg-orange-50 text-orange-700",
 };
 
 export function LoansList({
@@ -44,7 +63,9 @@ export function LoansList({
                     loading="lazy"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">Capa</div>
+                  <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
+                    Capa
+                  </div>
                 )}
               </div>
 
@@ -71,12 +92,10 @@ export function LoansList({
                     <div
                       className={cn(
                         "text-sm font-medium mt-1",
-                        loan.status === "PENDING" ? "text-yellow-600" : "",
-                        loan.status === "APPROVED" ? "text-green-600" : "",
-                        loan.status === "REJECTED" ? "text-red-600" : ""
+                        STATUS_CLASSES[loan.status] ?? "text-gray-600"
                       )}
                     >
-                      {loan.status}
+                      {STATUS_LABELS_PT[loan.status] ?? loan.status}
                     </div>
                   </div>
                 </div>
@@ -138,34 +157,54 @@ export function LoansList({
             <tbody className="text-sm">
               {loans.map((loan) => (
                 <tr key={loan.id} className="border-t">
-                  <td className="px-4 py-3 max-w-xs truncate">{loan.book?.title ?? "—"}</td>
-                  <td className="px-4 py-3 max-w-xs truncate">{loan.user?.name ?? loan.user?.email ?? "—"}</td>
-                  <td className="px-4 py-3">{loan.requestedAt ? new Date(loan.requestedAt).toLocaleDateString() : "-"}</td>
+                  <td className="px-4 py-3 max-w-xs truncate">
+                    {loan.book?.title ?? "—"}
+                  </td>
+                  <td className="px-4 py-3 max-w-xs truncate">
+                    {loan.user?.name ?? loan.user?.email ?? "—"}
+                  </td>
                   <td className="px-4 py-3">
-                    <span
-                      className={cn(
-                        "inline-block px-2 py-1 rounded-md text-xs font-medium",
-                        loan.status === "PENDING" ? "bg-yellow-50 text-yellow-700" : "",
-                        loan.status === "APPROVED" ? "bg-green-50 text-green-700" : "",
-                        loan.status === "REJECTED" ? "bg-red-50 text-red-700" : ""
-                      )}
-                    >
-                      {loan.status}
-                    </span>
+                    {loan.requestedAt
+                      ? new Date(loan.requestedAt).toLocaleDateString()
+                      : "-"}
+                  </td>
+                  <td className="px-4 py-3">
+                    <td className="px-4 py-3">
+                      <span
+                        className={cn(
+                          "inline-block px-2 py-1 rounded-md text-xs font-medium",
+                          STATUS_BG_CLASSES[loan.status] ??
+                            "bg-gray-100 text-gray-800"
+                        )}
+                      >
+                        {STATUS_LABELS_PT[loan.status] ?? loan.status}
+                      </span>
+                    </td>
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
                       {loan.status === "PENDING" && (
                         <>
-                          <Button size="sm" variant="default" onClick={() => onApprove?.(loan.id)}>
+                          <Button
+                            size="sm"
+                            variant="default"
+                            onClick={() => onApprove?.(loan.id)}
+                          >
                             Aprovar
                           </Button>
-                          <Button size="sm" variant="ghost" onClick={() => onReject?.(loan.id)}>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => onReject?.(loan.id)}
+                          >
                             Rejeitar
                           </Button>
                         </>
                       )}
-                      <Link href={`/loans/${loan.id}`} className="text-sm text-blue-600 hover:underline">
+                      <Link
+                        href={`/loans/${loan.id}`}
+                        className="text-sm text-blue-600 hover:underline"
+                      >
                         Detalhes
                       </Link>
                     </div>

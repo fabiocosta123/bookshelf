@@ -1,5 +1,3 @@
-import { CANCELLED } from "dns";
-
 export const STATUS_LABELS_PT: Record<string, string> = {
     PENDING: "Pendente",
     APPROVED: "Aprovado",
