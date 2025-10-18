@@ -168,7 +168,7 @@ export function LoansList({
                       ? new Date(loan.requestedAt).toLocaleDateString()
                       : "-"}
                   </td>
-                  <td className="px-4 py-3">
+                 
                     <td className="px-4 py-3">
                       <span
                         className={cn(
@@ -180,7 +180,7 @@ export function LoansList({
                         {STATUS_LABELS_PT[loan.status] ?? loan.status}
                       </span>
                     </td>
-                  </td>
+                 
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
                       {loan.status === "PENDING" && (
