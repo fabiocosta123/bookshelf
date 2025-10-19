@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
 
 const STATUS_OPTIONS = [
   { value: "", label: "Todos" },
@@ -24,7 +25,8 @@ export default function LoansFilter() {
   useEffect(() => {
     const timeout = setTimeout(() => {
       const params = new URLSearchParams(searchParams.toString());
-
+      params.set("page", "1");
+      
       if (book.trim()) params.set("book", book.trim());
       if (user.trim()) params.set("user", user.trim());
       if (status) params.set("status", status);
@@ -34,6 +36,8 @@ export default function LoansFilter() {
 
     return () => clearTimeout(timeout);
   }, [book, user, status]);
+
+  
 
   return (
     <div className="grid grid cols-1 sm:grid-cols-3 gap-4 mb-6">
@@ -62,6 +66,12 @@ export default function LoansFilter() {
           </option>
         ))}
       </select>
+
+      {/* <div className="flex justify-end">
+        <Button onClick={applyFilters} className="flex items-center gap-2">
+          🔍 Buscar
+        </Button>
+      </div> */}
     </div>
   );
 }

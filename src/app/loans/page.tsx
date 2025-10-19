@@ -1,17 +1,21 @@
 import { loanService } from "@/lib/services/loan-service";
 import { LoanStatus } from "@prisma/client";
 import LoansClient from "@/components/loans/LoansClient";
+import { headers } from "next/headers";
 
-export default async function LoansPage({ searchParams }: { searchParams: Record<string, string> }) {
-  const rawStatus = searchParams.status;
+export default async function LoansPage({searchParams}: {searchParams: { [key: string]: string | string[] | undefined };
+}) {
+  
+  const rawStatus = typeof searchParams.status === "string" ? searchParams.status : undefined;
   const status = Object.values(LoanStatus).includes(rawStatus as LoanStatus)
     ? (rawStatus as LoanStatus)
     : undefined;
 
-  const book = searchParams.book ?? undefined;
-  const user = searchParams.user ?? undefined;
-  const page = Number(searchParams.page || 1);
-  const limit = Number(searchParams.limit || 12);
+  const book = typeof searchParams.book === "string" ? searchParams.book : undefined;
+  const user = typeof searchParams.user === "string" ? searchParams.user : undefined;
+
+  const page = Number(searchParams.page ?? 1);
+  const limit = 5;
 
   const result = await loanService.getAllLoans(status, page, limit, book, user);
 

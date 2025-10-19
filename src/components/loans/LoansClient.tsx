@@ -23,16 +23,21 @@ interface Props {
   };
 }
 
-export default function LoansClient({ initialLoans, pagination, filters }: Props) {
+export default function LoansClient({ initialLoans, pagination }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const [loans, setLoans] = React.useState<LoanItem[]>(initialLoans);
   const [loading, setLoading] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    setLoans(initialLoans);
+  }, [initialLoans]);
 
   const [rejectModalOpen, setRejectModalOpen] = React.useState(false);
-  const [rejectingLoanId, setRejectingLoanId] = React.useState<string | null>(null);
+  const [rejectingLoanId, setRejectingLoanId] = React.useState<string | null>(
+    null
+  );
   const [rejectReason, setRejectReason] = React.useState("");
 
   const page = pagination.page;
@@ -41,6 +46,7 @@ export default function LoansClient({ initialLoans, pagination, filters }: Props
     const params = new URLSearchParams(searchParams.toString());
     params.set("page", String(newPage));
     router.push(`/loans?${params.toString()}`, { scroll: false });
+    router.refresh();
   };
 
   const refresh = () => router.refresh();
@@ -54,11 +60,14 @@ export default function LoansClient({ initialLoans, pagination, filters }: Props
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "approve" }),
       });
+
       if (!res.ok) throw new Error(await res.text());
       toast.success("Empréstimo aprovado");
       refresh();
+
     } catch (err: any) {
       toast.error(err?.message ?? "Erro ao aprovar");
+
     } finally {
       toast.dismiss(toastId);
       setLoading(false);
@@ -114,7 +123,9 @@ export default function LoansClient({ initialLoans, pagination, filters }: Props
         <header className="flex items-start justify-between gap-4 mb-4">
           <div>
             <h1 className="text-xl font-semibold">Empréstimos</h1>
-            <p className="mt-1 text-sm text-gray-500">Solicitações e empréstimos recentes</p>
+            <p className="mt-1 text-sm text-gray-500">
+              Solicitações e empréstimos recentes
+            </p>
           </div>
           <Button size="sm" variant="outline" onClick={refresh}>
             Atualizar
@@ -123,20 +134,18 @@ export default function LoansClient({ initialLoans, pagination, filters }: Props
 
         <LoansFilter />
 
-        {error && (
-          <div className="mb-4 p-3 rounded-md bg-red-50 text-sm text-red-700">
-            {error}
-            <button className="ml-3 underline" onClick={refresh}>
-              Tentar novamente
-            </button>
-          </div>
-        )}
+     
 
         {!loading && loans.length === 0 && (
           <div className="mt-6 text-center p-6 bg-white border rounded-lg">
-            <p className="text-sm text-gray-600">Nenhum empréstimo encontrado.</p>
+            <p className="text-sm text-gray-600">
+              Nenhum empréstimo encontrado.
+            </p>
             <div className="mt-4 flex justify-center">
-              <Link href="/books" className="text-sm text-blue-600 hover:underline">
+              <Link
+                href="/books"
+                className="text-sm text-blue-600 hover:underline"
+              >
                 Ver livros disponíveis
               </Link>
             </div>
@@ -145,7 +154,11 @@ export default function LoansClient({ initialLoans, pagination, filters }: Props
 
         {!loading && loans.length > 0 && (
           <>
-            <LoansList loans={loans} onApprove={onApprove} onReject={openRejectModal} />
+            <LoansList
+              loans={loans}
+              onApprove={onApprove}
+              onReject={openRejectModal}
+            />
 
             <div className="mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div className="text-sm text-gray-600 truncate w-full sm:w-auto">
@@ -193,7 +206,9 @@ export default function LoansClient({ initialLoans, pagination, filters }: Props
             <h2 id="reject-modal-title" className="text-lg font-semibold mb-2">
               Rejeitar solicitação
             </h2>
-            <p className="text-sm text-gray-600 mb-4">Informe o motivo da rejeição.</p>
+            <p className="text-sm text-gray-600 mb-4">
+              Informe o motivo da rejeição.
+            </p>
 
             <textarea
               autoFocus
@@ -205,7 +220,7 @@ export default function LoansClient({ initialLoans, pagination, filters }: Props
               aria-label="Motivo da rejeição"
             />
 
-                        <div className="mt-4 flex justify-end gap-2">
+            <div className="mt-4 flex justify-end gap-2">
               <Button variant="ghost" size="sm" onClick={closeRejectModal}>
                 Cancelar
               </Button>

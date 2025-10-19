@@ -500,7 +500,7 @@ export class LoanService {
     }
   }
 
-  // 📊 LISTAR EMPRÉSTIMOS POR USUÁRIO
+  // LISTAR EMPRÉSTIMOS POR USUÁRIO
   async getUserLoans(userId: string, status?: LoanStatus) {
     try {
       const whereClause: any = { userId };
@@ -538,65 +538,7 @@ export class LoanService {
     }
   }
 
-  // 📋 LISTAR TODOS OS EMPRÉSTIMOS
-  // async getAllLoans(status?: LoanStatus, page: number = 1, limit: number = 10) {
-  //   try {
-  //     const whereClause: any = {};
 
-  //     if (status) {
-  //       whereClause.status = status;
-  //     }
-
-  //     const skip = (page - 1) * limit;
-
-  //     const [loans, total] = await Promise.all([
-  //       prisma.loan.findMany({
-  //         where: whereClause,
-  //         include: {
-  //           book: {
-  //             select: {
-  //               title: true,
-  //               author: true,
-  //               cover: true
-  //             }
-  //           },
-  //           user: {
-  //             select: {
-  //               name: true,
-  //               email: true,
-  //               registration_number: true
-  //             }
-  //           },
-  //           approvedBy: {
-  //             select: {
-  //               name: true
-  //             }
-  //           }
-  //         },
-  //         orderBy: {
-  //           createdAt: 'desc'
-  //         },
-  //         skip,
-  //         take: limit
-  //       }),
-  //       prisma.loan.count({ where: whereClause })
-  //     ]);
-
-  //     return {
-  //       loans,
-  //       pagination: {
-  //         page,
-  //         limit,
-  //         total,
-  //         totalPages: Math.ceil(total / limit)
-  //       }
-  //     };
-
-  //   } catch (error) {
-  //     console.error('Erro ao buscar todos os empréstimos:', error);
-  //     throw error;
-  //   }
-  // }
 
   async getAllLoans(
     status?: LoanStatus,
@@ -794,7 +736,7 @@ export class LoanService {
     }
   }
 
-  // 🔔 MÉTODO AUXILIAR PARA CRIAR NOTIFICAÇÕES
+  // MÉTODO AUXILIAR PARA CRIAR NOTIFICAÇÕES
   private async createNotification(data: {
     userId: string;
     title: string;
