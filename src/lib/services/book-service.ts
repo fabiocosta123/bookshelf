@@ -54,11 +54,12 @@ export const GENRES = [
   'Terror',
   'Biografia',
   'História',
-  'Autoajuda',
+  'Auto Ajuda',
   'Negócios',
   'Tecnologia',
   'Programação',
   'Literatura Brasileira',
   'Infantil',
-  'Young Adult'
+  'Young Adult',
+  'Religião'
 ] as const;

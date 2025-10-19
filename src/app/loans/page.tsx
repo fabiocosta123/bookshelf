@@ -1,23 +1,44 @@
+// src/app/loans/page.tsx (ALTERNATIVA)
 import { loanService } from "@/lib/services/loan-service";
 import { LoanStatus } from "@prisma/client";
 import LoansClient from "@/components/loans/LoansClient";
-import { headers } from "next/headers";
 
-export default async function LoansPage({searchParams}: {searchParams: { [key: string]: string | string[] | undefined };
-}) {
+// **ALTERNATIVA: Use searchParams como Promise**
+interface PageProps {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}
+
+export default async function LoansPage({ searchParams }: PageProps) {
+  // **CORREÇÃO: Aguarde os searchParams**
+  const params = await searchParams;
   
-  const rawStatus = typeof searchParams.status === "string" ? searchParams.status : undefined;
-  const status = Object.values(LoanStatus).includes(rawStatus as LoanStatus)
-    ? (rawStatus as LoanStatus)
-    : undefined;
+  console.log('=== 🚀 SERVER: LoansPage executando ===');
+  console.log('📋 Todos os searchParams:', params);
 
-  const book = typeof searchParams.book === "string" ? searchParams.book : undefined;
-  const user = typeof searchParams.user === "string" ? searchParams.user : undefined;
+  const rawStatus = params.status;
+  let status: LoanStatus | undefined;
+  
+  if (typeof rawStatus === 'string') {
+    status = Object.values(LoanStatus).includes(rawStatus as LoanStatus)
+      ? (rawStatus as LoanStatus)
+      : undefined;
+  }
 
-  const page = Number(searchParams.page ?? 1);
+  const book = typeof params.book === "string" ? params.book : undefined;
+  const user = typeof params.user === "string" ? params.user : undefined;
+  const page = Number(params.page) || 1;
   const limit = 5;
 
+  console.log('📋 Parâmetros processados:', { status, book, user, page });
+  
   const result = await loanService.getAllLoans(status, page, limit, book, user);
+
+  console.log('📊 Resultado do serviço:', {
+    loansCount: result.loans.length,
+    statusFilter: status,
+    loansStatuses: result.loans.map(l => l.status),
+    pagination: result.pagination
+  });
 
   const normalizedLoans = result.loans.map((loan) => ({
     ...loan,
@@ -26,7 +47,6 @@ export default async function LoansPage({searchParams}: {searchParams: { [key: s
     createdAt: loan.createdAt?.toISOString() ?? null,
     dueDate: loan.dueDate?.toISOString() ?? null,
   }));
-
 
   return (
     <LoansClient

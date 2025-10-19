@@ -538,102 +538,225 @@ export class LoanService {
     }
   }
 
+//   async getAllLoans(
 
+//   status?: LoanStatus,
+//   page: number = 1,
+//   limit: number = 10,
+//   bookQuery?: string,
+//   userQuery?: string
+// ) {
+//   try {
+//     const filters: any[] = [];
 
-  async getAllLoans(
-    status?: LoanStatus,
-    page: number = 1,
-    limit: number = 10,
-    bookQuery?: string,
-    userQuery?: string
-  ) {
-    try {
-      const whereClause: any = {};
+//     if (status) {
+//       filters.push({ status });
+//     }
 
-      if (status) {
-        whereClause.status = status;
-      }
+//     if (bookQuery?.trim()) {
+//       filters.push({
+//         book: {
+//           title: {
+//             contains: bookQuery.trim(),
+//             mode: "insensitive",
+//           },
+//         },
+//       });
+//     }
 
-      if (bookQuery?.trim()) {
-        whereClause.book = {
+//     // filtro por nome ou email
+//     if (userQuery?.trim()) {
+//       filters.push({
+//         OR: [
+//           {
+//             user: {
+//               name: {
+//                 contains: userQuery.trim(),
+//                 mode: "insensitive",
+//               },
+//             },
+//           },
+//           {
+//             user: {
+//               email: {
+//                 contains: userQuery.trim(),
+//                 mode: "insensitive",
+//               },
+//             },
+//           },
+//         ],
+//       });
+//     }
+
+//     const whereClause = filters.length > 0 ? { AND: filters } : {};
+
+//     const skip = (page - 1) * limit;
+
+//     const [loans, total] = await Promise.all([
+//       prisma.loan.findMany({
+//         where: whereClause,
+//         include: {
+//           book: {
+//             select: {
+//               id: true,
+//               title: true,
+//               author: true,
+//               cover: true,
+//             },
+//           },
+//           user: {
+//             select: {
+//               name: true,
+//               email: true,
+//               registration_number: true,
+//             },
+//           },
+//           approvedBy: {
+//             select: {
+//               name: true,
+//             },
+//           },
+//         },
+//         orderBy: {
+//           createdAt: "desc",
+//         },
+//         skip,
+//         take: limit,
+//       }),
+//       prisma.loan.count({ where: whereClause }),
+//     ]);
+
+//     return {
+//       loans,
+//       pagination: {
+//         page,
+//         limit,
+//         total,
+//         totalPages: Math.ceil(total / limit),
+//       },
+//     };
+//   } catch (error) {
+//     console.error("Erro ao buscar todos os empréstimos:", error);
+//     throw error;
+//   }
+// }
+ 
+  // BUSCAR EMPRÉSTIMO POR ID
+
+async getAllLoans(
+  status?: LoanStatus,
+  page: number = 1,
+  limit: number = 10,
+  bookQuery?: string,
+  userQuery?: string
+) {
+  try {
+    console.log('LoanService.getAllLoans chamado com:', { 
+      status, 
+      page, 
+      limit, 
+      bookQuery, 
+      userQuery 
+    });
+    const filters: any[] = [];
+
+    if (status) {
+      filters.push({ status });
+    }
+
+    if (bookQuery?.trim()) {
+      filters.push({
+        book: {
           title: {
             contains: bookQuery.trim(),
             mode: "insensitive",
           },
-        };
-      }
-
-      if (userQuery?.trim()) {
-        whereClause.user = {
-          OR: [
-            {
-              name: {
-                contains: userQuery.trim(),
-                mode: "insensitive",
-              },
-            },
-            {
-              email: {
-                contains: userQuery.trim(),
-                mode: "insensitive",
-              },
-            },
-          ],
-        };
-      }
-
-      const skip = (page - 1) * limit;
-
-      const [loans, total] = await Promise.all([
-        prisma.loan.findMany({
-          where: whereClause,
-          include: {
-            book: {
-              select: {
-                id: true,
-                title: true,
-                author: true,
-                cover: true,
-              },
-            },
-            user: {
-              select: {
-                name: true,
-                email: true,
-                registration_number: true,
-              },
-            },
-            approvedBy: {
-              select: {
-                name: true,
-              },
-            },
-          },
-          orderBy: {
-            createdAt: "desc",
-          },
-          skip,
-          take: limit,
-        }),
-        prisma.loan.count({ where: whereClause }),
-      ]);
-
-      return {
-        loans,
-        pagination: {
-          page,
-          limit,
-          total,
-          totalPages: Math.ceil(total / limit),
         },
-      };
-    } catch (error) {
-      console.error("Erro ao buscar todos os empréstimos:", error);
-      throw error;
+      });
     }
-  }
 
-  // 🔍 BUSCAR EMPRÉSTIMO POR ID
+    const whereClause: any = filters.length > 0 ? { AND: filters } : {};
+
+    // Adiciona OR no nível superior, fora do AND
+    if (userQuery?.trim()) {
+      whereClause.OR = [
+        {
+          user: {
+            name: {
+              contains: userQuery.trim(),
+              mode: "insensitive",
+            },
+          },
+        },
+        {
+          user: {
+            email: {
+              contains: userQuery.trim(),
+              mode: "insensitive",
+            },
+          },
+        },
+      ];
+    }
+
+    console.log(' WHERE clause gerado:', JSON.stringify(whereClause, null, 2));
+    const skip = (page - 1) * limit;
+
+    const [loans, total] = await Promise.all([
+      prisma.loan.findMany({
+        where: whereClause,
+        include: {
+          book: {
+            select: {
+              id: true,
+              title: true,
+              author: true,
+              cover: true,
+            },
+          },
+          user: {
+            select: {
+              name: true,
+              email: true,
+              registration_number: true,
+            },
+          },
+          approvedBy: {
+            select: {
+              name: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+        skip,
+        take: limit,
+      }),
+      prisma.loan.count({ where: whereClause }),
+    ]);
+
+    console.log('LoanService retornando:', { 
+      loansCount: loans.length,
+      total,
+      loansSample: loans.slice(0, 2).map(l => ({ id: l.id, status: l.status, title: l.book.title }))
+    });
+
+    return {
+      loans,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  } catch (error) {
+    console.error("Erro ao buscar todos os empréstimos:", error);
+    throw error;
+  }
+}
+
   async getLoanById(loanId: string) {
     try {
       const loan = await prisma.loan.findUnique({

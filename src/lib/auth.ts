@@ -7,7 +7,7 @@ import bcrypt from "bcryptjs";
 import { JWT } from "next-auth/jwt";
 import { Account, User } from "next-auth";
 
-// 🔐 Configuração principal do NextAuth
+// Configuração principal do NextAuth
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   secret: process.env.NEXTAUTH_SECRET,
@@ -168,7 +168,7 @@ async redirect(params: any) {
   },
 };
 
-// 🧠 Extendendo tipos do NextAuth
+// Extendendo tipos do NextAuth
 declare module "next-auth" {
   interface Session {
     user: {

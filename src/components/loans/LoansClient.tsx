@@ -23,21 +23,29 @@ interface Props {
   };
 }
 
-export default function LoansClient({ initialLoans, pagination }: Props) {
+export default function LoansClient({ initialLoans, pagination, filters }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const [loans, setLoans] = React.useState<LoanItem[]>(initialLoans);
   const [loading, setLoading] = React.useState(false);
 
+  // React.useEffect(() => {
+  //   setLoans(initialLoans);
+  // }, [initialLoans]);
+
+   // **DEBUG: Log quando initialLoans muda**
   React.useEffect(() => {
+    console.log('🔄 LoansClient: initialLoans atualizado', {
+      count: initialLoans.length,
+      statusFilter: filters.status,
+      loans: initialLoans.map(l => ({ id: l.id, status: l.status, title: l.book?.title }))
+    });
     setLoans(initialLoans);
-  }, [initialLoans]);
+  }, [initialLoans, filters.status]);
 
   const [rejectModalOpen, setRejectModalOpen] = React.useState(false);
-  const [rejectingLoanId, setRejectingLoanId] = React.useState<string | null>(
-    null
-  );
+  const [rejectingLoanId, setRejectingLoanId] = React.useState<string | null>(null);
   const [rejectReason, setRejectReason] = React.useState("");
 
   const page = pagination.page;
@@ -45,11 +53,27 @@ export default function LoansClient({ initialLoans, pagination }: Props) {
   const goToPage = (newPage: number) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set("page", String(newPage));
+    console.log('📄 Mudando para página:', newPage);
     router.push(`/loans?${params.toString()}`, { scroll: false });
+    // router.refresh();
+  };
+
+   const refresh = () => {
+    console.log('🔄 Refresh manual acionado');
     router.refresh();
   };
 
-  const refresh = () => router.refresh();
+   // **DEBUG: Log quando searchParams mudam**
+  React.useEffect(() => {
+    console.log('🔍 SearchParams atualizados:', {
+      status: searchParams.get('status'),
+      book: searchParams.get('book'),
+      user: searchParams.get('user'),
+      page: searchParams.get('page')
+    });
+  }, [searchParams]);
+
+  
 
   const onApprove = async (loanId: string) => {
     setLoading(true);
@@ -123,13 +147,12 @@ export default function LoansClient({ initialLoans, pagination }: Props) {
         <header className="flex items-start justify-between gap-4 mb-4">
           <div>
             <h1 className="text-xl font-semibold">Empréstimos</h1>
-            <p className="mt-1 text-sm text-gray-500">
-              Solicitações e empréstimos recentes
+            <p className="mt-1 text-sm text-gray-500">             
+              {filters.status ? ` Filtrado por: ${filters.status}` : "Todos os empréstimos"}
+              {` (${loans.length} resultados)`}
             </p>
           </div>
-          <Button size="sm" variant="outline" onClick={refresh}>
-            Atualizar
-          </Button>
+         
         </header>
 
         <LoansFilter />
@@ -139,7 +162,10 @@ export default function LoansClient({ initialLoans, pagination }: Props) {
         {!loading && loans.length === 0 && (
           <div className="mt-6 text-center p-6 bg-white border rounded-lg">
             <p className="text-sm text-gray-600">
-              Nenhum empréstimo encontrado.
+               {filters.status 
+                ? `Nenhum empréstimo encontrado com status: ${filters.status}`
+                : 'Nenhum empréstimo encontrado.'
+              }
             </p>
             <div className="mt-4 flex justify-center">
               <Link
@@ -162,7 +188,8 @@ export default function LoansClient({ initialLoans, pagination }: Props) {
 
             <div className="mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div className="text-sm text-gray-600 truncate w-full sm:w-auto">
-                Exibindo {loans.length} empréstimo{loans.length > 1 ? "s" : ""}
+                 Exibindo {loans.length} de {pagination.total} empréstimo{loans.length > 1 ? "s" : ""}
+                {filters.status && ` (Filtrado por: ${filters.status})`}
               </div>
 
               <div className="flex w-full sm:w-auto items-center gap-2">
@@ -175,12 +202,13 @@ export default function LoansClient({ initialLoans, pagination }: Props) {
                 </button>
 
                 <div className="px-3 py-1.5 text-sm bg-white border rounded-md hidden sm:inline-block">
-                  Página {page}
+                  Página {page} de {pagination.totalPages}
                 </div>
 
                 <button
                   className="inline-flex items-center px-3 py-1.5 rounded-md bg-white border w-full sm:w-auto justify-center"
                   onClick={() => goToPage(page + 1)}
+                  disabled={page >= pagination.totalPages}
                 >
                   Próxima
                 </button>
