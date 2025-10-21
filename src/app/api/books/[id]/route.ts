@@ -244,16 +244,13 @@ import { NextResponse } from "next/server";
 import { bookServiceServer } from "@/lib/services/book-service-server";
 import { ReadingStatus } from "@prisma/client";
 
-// Tipagem de apoio para o que está dentro do objeto params
-interface BookRouteParams {
-    id: string; 
-}
+// A interface BookRouteParams DEVE SER REMOVIDA COMPLETAMENTE
 
 // GET /api/books/:id => buscar um livro pelo ID
-// A tipagem do segundo argumento é MINIMALISTA
 export async function GET(
     request: Request, 
-    { params }: { params: BookRouteParams } // CORREÇÃO FINAL: Usando a interface BookRouteParams mais limpa
+    // CORREÇÃO FINAL: Usamos a tipagem inline mais simples para o params
+    { params }: { params: { id: string } } 
 ) {
     try {
         const book = await bookServiceServer.getBookById(params.id);
@@ -278,7 +275,7 @@ export async function GET(
 // PUT /api/books/:id => atualizar um livro pelo ID
 export async function PUT(
     request: Request, 
-    { params }: { params: BookRouteParams } // CORREÇÃO FINAL
+    { params }: { params: { id: string } } // CORREÇÃO APLICADA AQUI
 ) {
     try {
         const body = await request.json();
@@ -333,7 +330,7 @@ export async function PUT(
 // DELETE /api/books/:id => excluir um livro pelo ID
 export async function DELETE(
     request: Request, 
-    { params }: { params: BookRouteParams } // CORREÇÃO FINAL
+    { params }: { params: { id: string } } // CORREÇÃO APLICADA AQUI
 ) {
     try {
         const book = await bookServiceServer.getBookById(params.id);
