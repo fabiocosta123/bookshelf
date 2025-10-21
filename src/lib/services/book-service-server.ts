@@ -9,9 +9,12 @@ export class BookServiceServer {
         loans: {
           where: { status: 'ACTIVE' },
           include: {
-            user: {
-              select: { name: true }
-            }
+            user: { select: { name: true } }
+          }
+        },
+        reviews: {
+          include: {
+            user: { select: { name: true } }
           }
         }
       }
@@ -28,13 +31,8 @@ export class BookServiceServer {
       ];
     }
 
-    if (filters?.genre) {
-      where.genre = filters.genre;
-    }
-
-    if (filters?.readingStatus) {
-      where.reading_status = filters.readingStatus;
-    }
+    if (filters?.genre) where.genre = filters.genre;
+    if (filters?.readingStatus) where.reading_status = filters.readingStatus;
 
     return await prisma.book.findMany({
       where,
@@ -43,9 +41,7 @@ export class BookServiceServer {
         loans: {
           where: { status: 'ACTIVE' },
           include: {
-            user: {
-              select: { name: true }
-            }
+            user: { select: { name: true } }
           }
         }
       }
@@ -74,9 +70,7 @@ export class BookServiceServer {
   }
 
   async deleteBook(id: string) {
-    return await prisma.book.delete({
-      where: { id }
-    });
+    return await prisma.book.delete({ where: { id } });
   }
 
   async createBook(data: any) {

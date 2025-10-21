@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -45,6 +45,9 @@ model User {
   registration_number String?       @unique
   role                UserRole      @default(CLIENT)
   status              UserStatus    @default(ACTIVE)
+
+  password            String?   // hash da senha (apenas para admin/funcionários) 
+  salt                String?   // salt para o hash
   
   // Relações de autenticação
   accounts            Account[]
@@ -52,6 +55,7 @@ model User {
   
   // Relações da aplicação
   loans               Loan[]
+  approvedLoans       Loan[]        @relation("LoanApprover")
   notifications       Notification[]
   reviews             Review[]
   createdBooks        Book[]        @relation("BookCreator")
@@ -66,20 +70,35 @@ model Loan {
   id                String              @id @default(cuid())
   bookId            String              @map("book_id")
   userId            String              @map("user_id")
-  loan_date         DateTime
-  due_date          DateTime
-  return_date       DateTime?
-  status            LoanStatus          @default(ACTIVE)
-  condition_before  BookConditionType?
-  condition_after   BookConditionType?
-  notes             String?
   
-  // Relações
+  //  DATAS CONTROLADAS PELO SISTEMA/FUNCIONÁRIO
+  requestedAt       DateTime            @default(now()) @map("requested_at")
+  approvedAt        DateTime?           @map("approved_at")
+  loanDate          DateTime?           @map("loan_date")
+  dueDate           DateTime?           @map("due_date")
+  returnedAt        DateTime?           @map("returned_at")
+  
+  // STATUS E CONTROLE
+  status            LoanStatus          @default(PENDING)
+  
+  //  INFORMAÇÕES TÉCNICAS (FUNCIONÁRIO)
+  conditionBefore   BookConditionType?  @map("condition_before")
+  conditionAfter    BookConditionType?  @map("condition_after")
+  employeeNotes     String?             @map("employee_notes")
+  rejectionReason   String?             @map("rejection_reason")
+  
+  //  INFORMAÇÕES DO CLIENTE
+  userNotes         String?             @map("user_notes")
+  
+  // RELAÇÕES
   book              Book                @relation(fields: [bookId], references: [id])
   user              User                @relation(fields: [userId], references: [id])
+  approvedBy        User?               @relation("LoanApprover", fields: [approvedById], references: [id])
+  approvedById      String?
   notifications     Notification[]
   
   createdAt         DateTime            @default(now()) @map("created_at")
+  updatedAt         DateTime            @updatedAt @map("updated_at")
   
   @@map("loans")
 }
@@ -183,9 +202,9 @@ enum ReadingStatus {
 }
 
 enum UserRole {
-  CLIENT      // = STANDARD (usuário comum)
-  EMPLOYEE    // funcionário
-  ADMIN       // administrador
+  CLIENT
+  EMPLOYEE
+  ADMIN
 }
 
 enum UserStatus {
@@ -195,10 +214,13 @@ enum UserStatus {
 }
 
 enum LoanStatus {
+  PENDING
+  APPROVED
   ACTIVE
   RETURNED
   OVERDUE
   CANCELLED
+  REJECTED
 }
 
 enum BookConditionType {
@@ -210,8 +232,17 @@ enum BookConditionType {
 }
 
 enum NotificationType {
-  OVERDUE
-  REMINDER
-  SYSTEM
+  // Para clientes
+  LOAN_APPROVED
+  LOAN_REJECTED
+  LOAN_OVERDUE
+  RETURN_REMINDER
   RETURN_CONFIRMATION
+  
+  // Para funcionários
+  NEW_LOAN_REQUEST
+  LOAN_CANCELLED
+  
+  // Para todos
+  SYSTEM
 }

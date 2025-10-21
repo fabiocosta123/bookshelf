@@ -24,174 +24,6 @@ Prisma ORM
 APIs Externas
 Google Books API - para busca e preenchimento automático
 
-📁 Estrutura do Projeto
-text
-bookshelf/
-├── 📁 app/                          # Next.js App Router
-│   ├── 📄 layout.tsx               # Layout principal
-│   ├── 📄 page.tsx                 # Página inicial
-│   ├── 📁 (dashboard)/            # Grupo de rotas do dashboard
-│   │   └── 📄 page.tsx
-│   ├── 📁 (library)/              # Grupo de rotas da biblioteca
-│   │   ├── 📄 page.tsx            # Listagem de livros
-│   │   ├── 📁 books/
-│   │   │   ├── 📄 page.tsx        # Detalhes do livro
-│   │   │   ├── 📁 new/
-│   │   │   │   └── 📄 page.tsx    # Adicionar livro
-│   │   │   └── 📁 [id]/
-│   │   │       ├── 📄 page.tsx    # Detalhes do livro
-│   │   │       └── 📁 edit/
-│   │   │           └── 📄 page.tsx # Editar livro
-│   ├── 📁 (users)/                # Grupo de rotas de usuários
-│   │   ├── 📄 page.tsx            # Lista de usuários
-│   │   ├── 📁 new/
-│   │   │   └── 📄 page.tsx        # Novo usuário
-│   │   └── 📁 [id]/
-│   │       ├── 📄 page.tsx        # Perfil do usuário
-│   │       └── 📁 edit/
-│   │           └── 📄 page.tsx    # Editar usuário
-│   ├── 📁 (loans)/                # Grupo de rotas de empréstimos
-│   │   ├── 📄 page.tsx            # Lista de empréstimos
-│   │   ├── 📁 new/
-│   │   │   └── 📄 page.tsx        # Novo empréstimo
-│   │   └── 📁 [id]/
-│   │       └── 📄 page.tsx        # Detalhes do empréstimo
-│   └── 📁 api/                    # API Routes
-│       ├── 📁 books/
-│       ├── 📁 users/
-│       ├── 📁 loans/
-│       └── 📁 notifications/
-├── 📁 components/                 # Componentes React
-│   ├── 📁 ui/                    # Componentes shadcn/ui
-│   ├── 📁 layout/                # Componentes de layout
-│   │   ├── 📄 navigation.tsx
-│   │   ├── 📄 sidebar.tsx
-│   │   └── 📄 header.tsx
-│   ├── 📁 books/                 # Componentes de livros
-│   │   ├── 📄 book-card.tsx
-│   │   ├── 📄 book-form.tsx
-│   │   └── 📄 book-search.tsx
-│   ├── 📁 users/                 # Componentes de usuários
-│   │   ├── 📄 user-card.tsx
-│   │   └── 📄 user-form.tsx
-│   ├── 📁 loans/                 # Componentes de empréstimos
-│   │   ├── 📄 loan-card.tsx
-│   │   ├── 📄 loan-form.tsx
-│   │   └── 📄 return-dialog.tsx
-│   ├── 📁 notifications/         # Componentes de notificações
-│   │   └── 📄 notification-bell.tsx
-│   └── 📁 conditions/            # Componentes de estado dos livros
-│       └── 📄 condition-badge.tsx
-├── 📁 lib/                       # Configurações e utilitários
-│   ├── 📄 database.ts            # Configuração do banco
-│   ├── 📁 services/              # Serviços de negócio
-│   │   ├── 📄 book-service.ts
-│   │   ├── 📄 user-service.ts
-│   │   ├── 📄 loan-service.ts
-│   │   ├── 📄 notification-service.ts
-│   │   └── 📄 google-books-service.ts
-│   ├── 📁 utils/                 # Utilitários
-│   │   ├── 📄 date-utils.ts
-│   │   └── 📄 validation.ts
-│   └── 📁 middleware/            # Middlewares
-│       └── 📄 auth.ts
-├── 📁 types/                     # Tipos TypeScript
-│   ├── 📄 book.ts
-│   ├── 📄 user.ts
-│   ├── 📄 loan.ts
-│   └── 📄 index.ts
-├── 📁 prisma/                    # Schema do Prisma
-│   └── 📄 schema.prisma
-├── 📁 scripts/                   # Scripts utilitários
-│   ├── 📄 setup-database.sql
-│   └── 📄 seed-data.sql
-├── 📁 public/                    # Arquivos estáticos
-│   ├── 📄 favicon.ico
-│   └── 📁 images/
-├── 📄 .env.local                 # Variáveis de ambiente (local)
-├── 📄 .env.example               # Exemplo de variáveis de ambiente
-├── 📄 package.json
-├── 📄 tailwind.config.js
-├── 📄 tsconfig.json
-└── 📄 README.md                  # Este arquivo
-🗄️ Modelo do Banco de Dados
-Tabelas Principais
-📚 Livros (books)
-sql
-CREATE TABLE books (
-    id NVARCHAR(50) PRIMARY KEY DEFAULT NEWID(),
-    title NVARCHAR(255) NOT NULL,
-    author NVARCHAR(255) NOT NULL,
-    genre NVARCHAR(100),
-    year INT,
-    pages INT,
-    total_copies INT DEFAULT 1,
-    available_copies INT DEFAULT 1,
-    rating INT CHECK (rating >= 1 AND rating <= 5),
-    synopsis NVARCHAR(MAX),
-    cover NVARCHAR(500),
-    isbn NVARCHAR(20),
-    created_at DATETIME2 DEFAULT GETDATE(),
-    updated_at DATETIME2 DEFAULT GETDATE()
-);
-👥 Usuários (users)
-sql
-CREATE TABLE users (
-    id NVARCHAR(50) PRIMARY KEY DEFAULT NEWID(),
-    name NVARCHAR(255) NOT NULL,
-    email NVARCHAR(255) UNIQUE NOT NULL,
-    phone NVARCHAR(20),
-    registration_number NVARCHAR(50) UNIQUE,
-    user_type NVARCHAR(20) DEFAULT 'STANDARD', -- STANDARD, ADMIN
-    is_active BIT DEFAULT 1,
-    created_at DATETIME2 DEFAULT GETDATE(),
-    updated_at DATETIME2 DEFAULT GETDATE()
-);
-📋 Empréstimos (loans)
-sql
-CREATE TABLE loans (
-    id NVARCHAR(50) PRIMARY KEY DEFAULT NEWID(),
-    book_id NVARCHAR(50) NOT NULL,
-    user_id NVARCHAR(50) NOT NULL,
-    loan_date DATE NOT NULL,
-    due_date DATE NOT NULL,
-    return_date DATE NULL,
-    status NVARCHAR(20) DEFAULT 'ACTIVE', -- ACTIVE, RETURNED, OVERDUE
-    condition_before NVARCHAR(50), -- Estado do livro antes
-    condition_after NVARCHAR(50), -- Estado do livro depois
-    notes NVARCHAR(500),
-    created_at DATETIME2 DEFAULT GETDATE(),
-    
-    FOREIGN KEY (book_id) REFERENCES books(id),
-    FOREIGN KEY (user_id) REFERENCES users(id)
-);
-🏷️ Estado dos Livros (book_conditions)
-sql
-CREATE TABLE book_conditions (
-    id NVARCHAR(50) PRIMARY KEY DEFAULT NEWID(),
-    book_id NVARCHAR(50) NOT NULL,
-    condition NVARCHAR(50) NOT NULL, -- EXCELLENT, GOOD, DAMAGED, etc.
-    notes NVARCHAR(500),
-    reported_by NVARCHAR(50) NOT NULL,
-    reported_at DATETIME2 DEFAULT GETDATE(),
-    
-    FOREIGN KEY (book_id) REFERENCES books(id)
-);
-🔔 Notificações (notifications)
-sql
-CREATE TABLE notifications (
-    id NVARCHAR(50) PRIMARY KEY DEFAULT NEWID(),
-    user_id NVARCHAR(50) NOT NULL,
-    title NVARCHAR(255) NOT NULL,
-    message NVARCHAR(500) NOT NULL,
-    type NVARCHAR(50) NOT NULL, -- OVERDUE, REMINDER, SYSTEM
-    is_read BIT DEFAULT 0,
-    related_loan_id NVARCHAR(50),
-    created_at DATETIME2 DEFAULT GETDATE(),
-    
-    FOREIGN KEY (user_id) REFERENCES users(id),
-    FOREIGN KEY (related_loan_id) REFERENCES loans(id)
-);
 🛠️ Configuração do Ambiente
 Pré-requisitos
 Node.js 18+
@@ -359,3 +191,232 @@ Commit suas mudanças: git commit -m 'Add nova funcionalidade'
 Push para a branch: git push origin feature/nova-funcionalidade
 
 Abra um Pull Request# bookshelf
+
+```
+bookshelf
+├─ client-5.12.0.tgz
+├─ components.json
+├─ eslint.config.mjs
+├─ next.config.ts
+├─ package-lock.json
+├─ package.json
+├─ postcss.config.mjs
+├─ prisma
+│  ├─ schema.prisma
+│  └─ seed.ts
+├─ public
+│  ├─ file.svg
+│  ├─ globe.svg
+│  ├─ next.svg
+│  ├─ vercel.svg
+│  └─ window.svg
+├─ README.md
+├─ scripts
+│  ├─ check-db.ts
+│  └─ create-admin.ts
+├─ src
+│  ├─ app
+│  │  ├─ api
+│  │  │  ├─ auth
+│  │  │  │  └─ [...nextauth]
+│  │  │  │     └─ route.ts
+│  │  │  ├─ books
+│  │  │  │  ├─ genres
+│  │  │  │  │  └─ route.ts
+│  │  │  │  ├─ import
+│  │  │  │  │  └─ route.ts
+│  │  │  │  ├─ route.ts
+│  │  │  │  ├─ users
+│  │  │  │  │  └─ [id]
+│  │  │  │  │     └─ reviews
+│  │  │  │  │        └─ route.ts
+│  │  │  │  └─ [id]
+│  │  │  │     └─ route.ts
+│  │  │  ├─ dashboard
+│  │  │  │  ├─ reading-stats
+│  │  │  │  │  └─ route.ts
+│  │  │  │  └─ stats
+│  │  │  │     └─ route.ts
+│  │  │  ├─ google-books
+│  │  │  │  └─ route.ts
+│  │  │  ├─ loans
+│  │  │  │  └─ route.ts
+│  │  │  └─ reviews
+│  │  │     ├─ route.ts
+│  │  │     └─ [id]
+│  │  │        └─ route.ts
+│  │  ├─ auth
+│  │  │  └─ login
+│  │  │     └─ page.tsx
+│  │  ├─ books
+│  │  │  ├─ import
+│  │  │  │  └─ page.tsx
+│  │  │  ├─ new
+│  │  │  │  └─ page.tsx
+│  │  │  ├─ page.tsx
+│  │  │  └─ [id]
+│  │  │     ├─ edit
+│  │  │     │  └─ page.tsx
+│  │  │     └─ page.tsx
+│  │  ├─ dashboard
+│  │  │  └─ page.tsx
+│  │  ├─ favicon.ico
+│  │  ├─ globals.css
+│  │  ├─ layout.tsx
+│  │  └─ page.tsx
+│  ├─ components
+│  │  ├─ books
+│  │  │  ├─ book-card.tsx
+│  │  │  ├─ delete-confirmation.tsx
+│  │  │  ├─ delete-review-confirmation.tsx
+│  │  │  ├─ review-form.tsx
+│  │  │  ├─ review-item.tsx
+│  │  │  ├─ review-list.tsx
+│  │  │  ├─ review-section.tsx
+│  │  │  └─ search-and-filter.tsx
+│  │  ├─ dashboard
+│  │  │  ├─ recent-books.tsx
+│  │  │  └─ stats-card.tsx
+│  │  ├─ layout
+│  │  │  ├─ header.tsx
+│  │  │  ├─ main-layout.tsx
+│  │  │  └─ sidebar.tsx
+│  │  ├─ providers
+│  │  │  └─ auth-provider.tsx
+│  │  └─ ui
+│  │     ├─ button.tsx
+│  │     └─ loading-spinner.tsx
+│  ├─ hooks
+│  │  ├─ use-auth.ts
+│  │  ├─ use-redirect-if-authenticated.ts
+│  │  └─ use-require-auth.ts
+│  └─ lib
+│     ├─ auth.ts
+│     ├─ prisma.ts
+│     ├─ services
+│     │  ├─ book-service-server.ts
+│     │  ├─ book-service.ts
+│     │  ├─ dashboard-service-server.ts
+│     │  ├─ dashboard-service.ts
+│     │  ├─ google-books-service.ts
+│     │  ├─ loan-service.ts
+│     │  ├─ review-service-server.ts
+│     │  └─ review-service.ts
+│     └─ utils.ts
+└─ tsconfig.json
+
+```
+```
+bookshelf
+├─ client-5.12.0.tgz
+├─ components.json
+├─ eslint.config.mjs
+├─ next.config.ts
+├─ package-lock.json
+├─ package.json
+├─ postcss.config.mjs
+├─ prisma
+│  ├─ schema.prisma
+│  └─ seed.ts
+├─ public
+│  ├─ file.svg
+│  ├─ globe.svg
+│  ├─ next.svg
+│  ├─ vercel.svg
+│  └─ window.svg
+├─ README.md
+├─ scripts
+│  ├─ check-db.ts
+│  └─ create-admin.ts
+├─ src
+│  ├─ app
+│  │  ├─ api
+│  │  │  ├─ auth
+│  │  │  │  └─ [...nextauth]
+│  │  │  │     └─ route.ts
+│  │  │  ├─ books
+│  │  │  │  ├─ genres
+│  │  │  │  │  └─ route.ts
+│  │  │  │  ├─ import
+│  │  │  │  │  └─ route.ts
+│  │  │  │  ├─ route.ts
+│  │  │  │  ├─ users
+│  │  │  │  │  └─ [id]
+│  │  │  │  │     └─ reviews
+│  │  │  │  │        └─ route.ts
+│  │  │  │  └─ [id]
+│  │  │  │     └─ route.ts
+│  │  │  ├─ dashboard
+│  │  │  │  ├─ reading-stats
+│  │  │  │  │  └─ route.ts
+│  │  │  │  └─ stats
+│  │  │  │     └─ route.ts
+│  │  │  ├─ google-books
+│  │  │  │  └─ route.ts
+│  │  │  ├─ loans
+│  │  │  │  └─ route.ts
+│  │  │  └─ reviews
+│  │  │     ├─ route.ts
+│  │  │     └─ [id]
+│  │  │        └─ route.ts
+│  │  ├─ auth
+│  │  │  └─ login
+│  │  │     └─ page.tsx
+│  │  ├─ books
+│  │  │  ├─ import
+│  │  │  │  └─ page.tsx
+│  │  │  ├─ new
+│  │  │  │  └─ page.tsx
+│  │  │  ├─ page.tsx
+│  │  │  └─ [id]
+│  │  │     ├─ edit
+│  │  │     │  └─ page.tsx
+│  │  │     └─ page.tsx
+│  │  ├─ dashboard
+│  │  │  └─ page.tsx
+│  │  ├─ favicon.ico
+│  │  ├─ globals.css
+│  │  ├─ layout.tsx
+│  │  └─ page.tsx
+│  ├─ components
+│  │  ├─ books
+│  │  │  ├─ book-card.tsx
+│  │  │  ├─ delete-confirmation.tsx
+│  │  │  ├─ delete-review-confirmation.tsx
+│  │  │  ├─ review-form.tsx
+│  │  │  ├─ review-item.tsx
+│  │  │  ├─ review-list.tsx
+│  │  │  ├─ review-section.tsx
+│  │  │  └─ search-and-filter.tsx
+│  │  ├─ dashboard
+│  │  │  ├─ recent-books.tsx
+│  │  │  └─ stats-card.tsx
+│  │  ├─ layout
+│  │  │  ├─ header.tsx
+│  │  │  ├─ main-layout.tsx
+│  │  │  └─ sidebar.tsx
+│  │  ├─ providers
+│  │  │  └─ auth-provider.tsx
+│  │  └─ ui
+│  │     ├─ button.tsx
+│  │     └─ loading-spinner.tsx
+│  ├─ hooks
+│  │  ├─ use-auth.ts
+│  │  ├─ use-redirect-if-authenticated.ts
+│  │  └─ use-require-auth.ts
+│  └─ lib
+│     ├─ auth.ts
+│     ├─ prisma.ts
+│     ├─ services
+│     │  ├─ book-service-server.ts
+│     │  ├─ book-service.ts
+│     │  ├─ dashboard-service-server.ts
+│     │  ├─ dashboard-service.ts
+│     │  ├─ google-books-service.ts
+│     │  ├─ loan-service.ts
+│     │  ├─ review-service-server.ts
+│     │  └─ review-service.ts
+│     └─ utils.ts
+└─ tsconfig.json
+
+```

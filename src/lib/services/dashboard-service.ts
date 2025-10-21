@@ -1,4 +1,4 @@
-// Client-side service - usa fetch para APIs
+
 export const dashboardService = {
   async getDashboardStats() {
     const response = await fetch('/api/dashboard/stats', {

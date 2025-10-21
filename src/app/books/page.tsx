@@ -104,9 +104,9 @@ export default function BooksPage() {
       <SearchAndFilter 
         genres={genres} 
         initialFilter={{
-          search: search || undefined, // ← CORREÇÃO AQUI
-          genre: genre || undefined,   // ← CORREÇÃO AQUI  
-          status: status || undefined  // ← CORREÇÃO AQUI
+          search: search || undefined, 
+          genre: genre || undefined,     
+          status: status || undefined  
         }} 
       />
 
