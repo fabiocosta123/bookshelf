@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { reviewServiceServer } from '@/lib/services/review-service-server';
@@ -10,7 +10,7 @@ interface RouteParams {
 }
 
 // GET /api/reviews/[id] - Buscar observação específica
-export async function GET(request: NextRequest, { params }: RouteParams) {
+export async function GET(request: Request, { params }: RouteParams) {
   try {
     const session = await getServerSession(authOptions);
 
@@ -43,7 +43,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 }
 
 // PUT /api/reviews/[id] - Atualizar observação
-export async function PUT(request: NextRequest, { params }: RouteParams) {
+export async function PUT(request: Request, { params }: RouteParams) {
   try {
     const session = await getServerSession(authOptions);
 
@@ -98,7 +98,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 }
 
 // DELETE /api/reviews/[id] - Excluir observação
-export async function DELETE(request: NextRequest, { params }: RouteParams) {
+export async function DELETE(request: Request, { params }: RouteParams) {
   try {
     const session = await getServerSession(authOptions);
 

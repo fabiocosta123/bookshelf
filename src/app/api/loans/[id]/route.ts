@@ -1,6 +1,6 @@
 
-import { NextRequest, NextResponse } from "next/server";
-import NextAuth, { getServerSession } from "next-auth";
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
 import type { Session } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { loanService } from "@/lib/services/loan-service";
@@ -8,7 +8,7 @@ import { loanService } from "@/lib/services/loan-service";
 const getSessionTyped = async (): Promise<Session | null> =>
  (await getServerSession(authOptions as any)) as Session | null;
 
-export async function PATCH(request: NextRequest, {params}: { params: { id: string }}){
+export async function PATCH(request: Request, {params}: { params: { id: string }}){
     try {
         const loanId = params.id;
         if (!loanId){
