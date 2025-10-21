@@ -180,3 +180,4 @@ export default async function LoanDetailsPage({ params }: Props) {
     return notFound();
   }
 }
+
