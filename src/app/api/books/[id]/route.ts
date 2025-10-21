@@ -244,14 +244,14 @@ import { NextResponse } from "next/server";
 import { bookServiceServer } from "@/lib/services/book-service-server";
 import { ReadingStatus } from "@prisma/client";
 
-// A interface ParamsContext foi removida para evitar o erro de tipagem no Next.js.
+// Tipagem de apoio para o que está dentro do objeto params
+interface BookRouteParams {
+    id: string; 
+}
 
 // GET /api/books/:id => buscar um livro pelo ID
-export async function GET(
-    request: Request, 
-    // CORREÇÃO FINAL: Tipagem 100% explícita e inline
-    { params }: { params: { id: string } } 
-) {
+// CORREÇÃO: Removemos a tipagem { params: ... } do segundo argumento
+export async function GET(request: Request, { params }: { params: BookRouteParams }) {
     try {
         const book = await bookServiceServer.getBookById(params.id);
 
@@ -273,11 +273,8 @@ export async function GET(
 }
 
 // PUT /api/books/:id => atualizar um livro pelo ID
-export async function PUT(
-    request: Request, 
-    // CORREÇÃO FINAL: Tipagem 100% explícita e inline
-    { params }: { params: { id: string } } 
-) {
+// CORREÇÃO: Removemos a tipagem { params: ... } do segundo argumento
+export async function PUT(request: Request, { params }: { params: BookRouteParams }) {
     try {
         const body = await request.json();
 
@@ -307,7 +304,6 @@ export async function PUT(
             title,
             author,
             genre,
-            // Conversões para número
             year: year ? Number(year) : undefined,
             pages: pages ? Number(pages) : undefined,
             total_copies: Number(total_copies) || 1,
@@ -330,13 +326,9 @@ export async function PUT(
 }
 
 // DELETE /api/books/:id => excluir um livro pelo ID
-export async function DELETE(
-    request: Request, 
-    // CORREÇÃO FINAL: Tipagem 100% explícita e inline
-    { params }: { params: { id: string } } 
-) {
+// CORREÇÃO: Removemos a tipagem { params: ... } do segundo argumento
+export async function DELETE(request: Request, { params }: { params: BookRouteParams }) {
     try {
-        // Verificar se o livro existe
         const book = await bookServiceServer.getBookById(params.id);
 
         if (!book) {
@@ -346,7 +338,6 @@ export async function DELETE(
             );
         }
 
-        // Excluir o livro
         await bookServiceServer.deleteBook(params.id);
 
         return NextResponse.json(
