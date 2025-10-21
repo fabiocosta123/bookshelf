@@ -138,17 +138,12 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import type { Session } from "next-auth";
-// Importa o BookConditionType do Prisma para tipagem segura
+
 import { BookConditionType } from "@prisma/client"; 
 import { authOptions } from "@/lib/auth";
 import { loanService } from "@/lib/services/loan-service";
 
-// --- TIPAGEM ---
 
-// Tipagem para os parâmetros de rota dinâmicos
-interface RouteParams {
-    id: string;
-}
 
 // Tipagem Customizada da Sessão (Assumindo que o role é adicionado em authOptions)
 interface CustomUser {
@@ -184,7 +179,7 @@ const getSessionTyped = async (): Promise<CustomSession | null> =>
 
 export async function PATCH(
     request: Request,
-    { params }: { params: RouteParams } // CORREÇÃO DEPLOY: Assinatura do Next.js App Router
+    { params }: any // CORREÇÃO DEPLOY: Assinatura do Next.js App Router
 ) {
     try {
         const loanId = params.id;

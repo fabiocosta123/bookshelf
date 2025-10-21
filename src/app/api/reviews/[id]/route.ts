@@ -140,17 +140,11 @@
 
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-// Importamos 'Session' para tipar a sessão
+
 import type { Session } from 'next-auth'; 
 import { authOptions } from '@/lib/auth';
 import { reviewServiceServer } from '@/lib/services/review-service-server';
 
-// --- TIPAGEM ---
-
-// Tipo para o parâmetro dinâmico
-interface ReviewRouteParams {
-    id: string;
-}
 
 // Tipagem para o corpo da requisição PUT
 interface UpdateReviewBody {
@@ -164,7 +158,7 @@ interface UpdateReviewBody {
 // GET /api/reviews/[id] - Buscar observação específica
 export async function GET(
     request: Request, 
-    { params }: { params: ReviewRouteParams } // CORREÇÃO CHAVE: Tipagem explícita do contexto
+    { params } : any
 ) {
     try {
         // Tipagem segura para a sessão
@@ -201,7 +195,7 @@ export async function GET(
 // PUT /api/reviews/[id] - Atualizar observação
 export async function PUT(
     request: Request, 
-    { params }: { params: ReviewRouteParams } // CORREÇÃO CHAVE: Tipagem explícita do contexto
+    { params }: any 
 ) {
     try {
         const session = await getServerSession(authOptions) as Session | null;
@@ -261,7 +255,7 @@ export async function PUT(
 // DELETE /api/reviews/[id] - Excluir observação
 export async function DELETE(
     request: Request, 
-    { params }: { params: ReviewRouteParams } // CORREÇÃO CHAVE: Tipagem explícita do contexto
+    { params }: any
 ) {
     try {
         const session = await getServerSession(authOptions) as Session | null;
