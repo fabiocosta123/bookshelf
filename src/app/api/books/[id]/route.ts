@@ -9,7 +9,7 @@ interface RouteParams {
 }
 
 // GET /api/books/:id => buscar um livro pelo ID
-export async function GET(request: NextRequest, { params }: RouteParams) {
+export async function GET(request: Request, { params }: RouteParams) {
   try {
     const book = await bookServiceServer.getBookById(params.id);
 
@@ -31,7 +31,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 }
 
 // PUT /api/books/:id => atualizar um livro pelo ID
-export async function PUT(request: NextRequest, { params }: RouteParams) {
+export async function PUT(request: Request, { params }: RouteParams) {
   try {
     const body = await request.json();
 
@@ -83,7 +83,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 }
 
 // DELETE /api/books/:id => excluir um livro pelo ID
-export async function DELETE(request: NextRequest, { params }: RouteParams) {
+export async function DELETE(request: Request, { params }: RouteParams) {
   try {
     // Verificar se o livro existe
     const book = await bookServiceServer.getBookById(params.id);
