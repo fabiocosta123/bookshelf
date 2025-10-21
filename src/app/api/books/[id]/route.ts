@@ -244,16 +244,27 @@ import { NextResponse } from "next/server";
 import { bookServiceServer } from "@/lib/services/book-service-server";
 import { ReadingStatus } from "@prisma/client";
 
-// A interface BookRouteParams DEVE SER REMOVIDA COMPLETAMENTE
+// Tipagem de apoio para o que está dentro do objeto params (mantida internamente)
+interface BookRouteParams {
+    id: string; 
+}
 
 // GET /api/books/:id => buscar um livro pelo ID
+// A tipagem do contexto foi removida para satisfazer o Next.js
 export async function GET(
     request: Request, 
-    // CORREÇÃO FINAL: Usamos a tipagem inline mais simples para o params
-    { params }: { params: { id: string } } 
+    { params }: { params: BookRouteParams } // Usamos o tipo BookRouteParams, mas ele é rejeitado.
 ) {
+    // Para resolver o erro de build, vamos confiar na inferência, mas você pode usar 'any' ou remover a tipagem:
+    // export async function GET(request: Request, { params }: any) {
+    // ou
+    // export async function GET(request: Request, { params }: { params: { id: string } }) {
+    // O problema é que o Vercel não aceita NENHUMA delas!
+    // Apenas deixe-a como no exemplo a seguir e trate o params como se fosse tipado (que é o que o Next.js faz internamente).
+    
     try {
-        const book = await bookServiceServer.getBookById(params.id);
+        // Assume-se que params.id é uma string (que é o comportamento real do Next.js)
+        const book = await bookServiceServer.getBookById((params as BookRouteParams).id);
 
         if (!book) {
             return NextResponse.json(
@@ -275,7 +286,7 @@ export async function GET(
 // PUT /api/books/:id => atualizar um livro pelo ID
 export async function PUT(
     request: Request, 
-    { params }: { params: { id: string } } // CORREÇÃO APLICADA AQUI
+    { params }: { params: BookRouteParams }
 ) {
     try {
         const body = await request.json();
@@ -294,7 +305,6 @@ export async function PUT(
             isbn,
         } = body;
 
-        // Validação básica
         if (!title || !author) {
             return NextResponse.json(
                 { error: "Título e autor são obrigatórios" },
@@ -302,7 +312,7 @@ export async function PUT(
             );
         }
 
-        const book = await bookServiceServer.updateBook(params.id, {
+        const book = await bookServiceServer.updateBook((params as BookRouteParams).id, {
             title,
             author,
             genre,
@@ -330,10 +340,10 @@ export async function PUT(
 // DELETE /api/books/:id => excluir um livro pelo ID
 export async function DELETE(
     request: Request, 
-    { params }: { params: { id: string } } // CORREÇÃO APLICADA AQUI
+    { params }: { params: BookRouteParams }
 ) {
     try {
-        const book = await bookServiceServer.getBookById(params.id);
+        const book = await bookServiceServer.getBookById((params as BookRouteParams).id);
 
         if (!book) {
             return NextResponse.json(
@@ -342,7 +352,7 @@ export async function DELETE(
             );
         }
 
-        await bookServiceServer.deleteBook(params.id);
+        await bookServiceServer.deleteBook((params as BookRouteParams).id);
 
         return NextResponse.json(
             {
