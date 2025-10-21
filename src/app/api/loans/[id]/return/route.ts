@@ -13,7 +13,7 @@ import { prisma } from "@/lib/prisma";
  * - somente usuários autenticados com role ADMIN ou EMPLOYEE podem processar devolução.
  * - valida se o empréstimo existe e ainda não foi devolvido.
  */
-export async function PATCH(request: Request, { params }: { params: any}) {
+export async function PATCH(request: Request, { params }: { params: { id: string } }) {
   try {
     // valida sessão e tipa corretamente
     const rawSession = await getServerSession(authOptions as any);

@@ -1,75 +1,39 @@
-// import { NextRequest, NextResponse } from "next/server";
-// import { getServerSession } from "next-auth";
-// import { authOptions } from "@/lib/auth";
-// import { reviewServiceServer } from "@/lib/services/review-service-server";
-
-// interface RouteParams {
-//     params: {
-//         id: string;
-//     }
-// }
-
-// // Get - Busca todas as informações de um usuario
-// export async function GET(request: NextRequest, { params } : RouteParams) {
-//     try {
-//         const session = await getServerSession(authOptions);
-
-//         if (!session?.user?.id) {
-//             return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
-//         }
-
-//         if (session.user.id !== params.id) {
-//             return NextResponse.json({ error: 'Não autorizado'}, { status: 403})
-//         }
-
-//         const reviews = await reviewServiceServer.getUserAllReviews(params.id);
-
-//         return NextResponse.json(reviews)
-
-//     } catch (error) {
-//         console.error('Erro ao buscar observações do usuário:', error)
-//         return NextResponse.json(
-//             {error: 'Erro interno do servidor'},
-//             { status: 500}
-//         )
-//     }
-// }
-
-
-
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { reviewServiceServer } from "@/lib/services/review-service-server";
 
-
+interface RouteParams {
+    params: {
+        id: string;
+    }
+}
 
 // Get - Busca todas as informações de um usuario
-export async function GET(
-    request: NextRequest, 
-    { params }: any // CORREÇÃO DEFINITIVA: Usamos 'any' para forçar a compilação no Vercel
-) {
-    try {
-        const session = await getServerSession(authOptions);
+export async function GET(request: NextRequest, { params } : RouteParams) {
+    try {
+        const session = await getServerSession(authOptions);
 
-        if (!session?.user?.id) {
-            return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
-        }
-        
-        // Acesso a params.id funciona normalmente
-        if (session.user.id !== params.id) {
-            return NextResponse.json({ error: 'Não autorizado'}, { status: 403});
-        }
+        if (!session?.user?.id) {
+            return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
+        }
 
-        const reviews = await reviewServiceServer.getUserAllReviews(params.id);
+        if (session.user.id !== params.id) {
+            return NextResponse.json({ error: 'Não autorizado'}, { status: 403})
+        }
 
-        return NextResponse.json(reviews);
+        const reviews = await reviewServiceServer.getUserAllReviews(params.id);
 
-    } catch (error) {
-        console.error('Erro ao buscar observações do usuário:', error);
-        return NextResponse.json(
-            {error: 'Erro interno do servidor'},
-            { status: 500}
-        );
-    }
+        return NextResponse.json(reviews)
+
+    } catch (error) {
+        console.error('Erro ao buscar observações do usuário:', error)
+        return NextResponse.json(
+            {error: 'Erro interno do servidor'},
+            { status: 500}
+        )
+    }
 }
+
+
+
