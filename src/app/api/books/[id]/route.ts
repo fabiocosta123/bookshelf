@@ -120,14 +120,14 @@ import { bookServiceServer } from "@/lib/services/book-service-server";
 import { ReadingStatus } from "@prisma/client";
 
 // Tipagem simplificada para o que realmente está dentro de 'params'
-interface RouteParams {
+interface ParamsContext {
   id: string; 
 }
 
 // GET /api/books/:id => buscar um livro pelo ID
 export async function GET(
   request: Request, // Tipo nativo Request (compatível com a Web API)
-  { params }: { params: RouteParams } // CORREÇÃO CHAVE: Tipagem explícita do contexto
+  { params }: { params: ParamsContext } // CORREÇÃO CHAVE: Tipagem explícita do contexto
 ) {
   try {
     const book = await bookServiceServer.getBookById(params.id);
@@ -152,7 +152,7 @@ export async function GET(
 // PUT /api/books/:id => atualizar um livro pelo ID
 export async function PUT(
   request: Request, // Tipo nativo Request
-  { params }: { params: RouteParams } // CORREÇÃO CHAVE
+  { params }: { params: ParamsContext } // CORREÇÃO CHAVE
 ) {
   try {
     const body = await request.json();
@@ -208,7 +208,7 @@ export async function PUT(
 // DELETE /api/books/:id => excluir um livro pelo ID
 export async function DELETE(
   request: Request, // Tipo nativo Request
-  { params }: { params: RouteParams } // CORREÇÃO CHAVE
+  { params }: { params: ParamsContext } // CORREÇÃO CHAVE
 ) {
   try {
     // Verificar se o livro existe
