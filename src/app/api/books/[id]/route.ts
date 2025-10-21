@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
-import { bookServiceServer, BookServiceServer } from "@/lib/services/book-service-server";
+import { NextResponse } from "next/server";
+import { bookServiceServer } from "@/lib/services/book-service-server";
 import { ReadingStatus } from "@prisma/client";
 
 interface RouteParams {
