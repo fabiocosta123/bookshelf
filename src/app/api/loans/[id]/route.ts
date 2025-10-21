@@ -210,6 +210,7 @@
 //   }
 // }
 
+
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -351,9 +352,10 @@ const handleCancel = async (loanId: string, body: RequestBody, user: UserSession
 // Main PATCH handler
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await getServerSession(authOptions);
 
     if (!session?.user) {
@@ -361,7 +363,7 @@ export async function PATCH(
     }
 
     const user = session.user as UserSession;
-    const loanId = params.id;
+    const loanId = id;
     
     if (!loanId) {
       return NextResponse.json({ error: "ID do empréstimo ausente" }, { status: 400 });
