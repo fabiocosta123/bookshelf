@@ -115,19 +115,14 @@
 // }
 
 
-import { NextResponse } from "next/server"; // NextRequest foi removido
+import { NextResponse } from "next/server";
 import { bookServiceServer } from "@/lib/services/book-service-server";
 import { ReadingStatus } from "@prisma/client";
 
-// Tipagem simplificada para o que realmente está dentro de 'params'
-interface ParamsContext {
-  id: string; 
-}
-
 // GET /api/books/:id => buscar um livro pelo ID
 export async function GET(
-  request: Request, // Tipo nativo Request (compatível com a Web API)
-  { params }: { params: ParamsContext } // CORREÇÃO CHAVE: Tipagem explícita do contexto
+  request: Request,
+  { params }: { params: { id: string } }
 ) {
   try {
     const book = await bookServiceServer.getBookById(params.id);
@@ -151,8 +146,8 @@ export async function GET(
 
 // PUT /api/books/:id => atualizar um livro pelo ID
 export async function PUT(
-  request: Request, // Tipo nativo Request
-  { params }: { params: ParamsContext } // CORREÇÃO CHAVE
+  request: Request,
+  { params }: { params: { id: string } }
 ) {
   try {
     const body = await request.json();
@@ -183,7 +178,6 @@ export async function PUT(
       title,
       author,
       genre,
-      // Conversões para número
       year: year ? Number(year) : undefined,
       pages: pages ? Number(pages) : undefined,
       total_copies: Number(total_copies) || 1,
@@ -207,8 +201,8 @@ export async function PUT(
 
 // DELETE /api/books/:id => excluir um livro pelo ID
 export async function DELETE(
-  request: Request, // Tipo nativo Request
-  { params }: { params: ParamsContext } // CORREÇÃO CHAVE
+  request: Request,
+  { params }: { params: { id: string } }
 ) {
   try {
     // Verificar se o livro existe
@@ -239,4 +233,3 @@ export async function DELETE(
     );
   }
 }
-

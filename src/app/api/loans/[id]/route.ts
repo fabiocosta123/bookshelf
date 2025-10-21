@@ -240,10 +240,6 @@ interface RequestBody {
   userId?: string;
 }
 
-interface RouteContext {
-  params: Promise<{ id: string }>;
-}
-
 // Helper functions
 const getUserId = (session: any, body: RequestBody): string => {
   return body.userId || session.user.id;
@@ -355,10 +351,9 @@ const handleCancel = async (loanId: string, body: RequestBody, user: UserSession
 // Main PATCH handler
 export async function PATCH(
   request: Request,
-  context: RouteContext
+  { params }: { params: { id: string } }
 ) {
   try {
-    const params = await context.params;
     const session = await getServerSession(authOptions);
 
     if (!session?.user) {
