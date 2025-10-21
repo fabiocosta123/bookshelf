@@ -122,10 +122,11 @@ import { ReadingStatus } from "@prisma/client";
 // GET /api/books/:id => buscar um livro pelo ID
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const book = await bookServiceServer.getBookById(params.id);
+    const { id } = await params;
+    const book = await bookServiceServer.getBookById(id);
 
     if (!book) {
       return NextResponse.json(
@@ -147,9 +148,10 @@ export async function GET(
 // PUT /api/books/:id => atualizar um livro pelo ID
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const body = await request.json();
 
     const {
@@ -174,7 +176,7 @@ export async function PUT(
       );
     }
 
-    const book = await bookServiceServer.updateBook(params.id, {
+    const book = await bookServiceServer.updateBook(id, {
       title,
       author,
       genre,
@@ -202,11 +204,13 @@ export async function PUT(
 // DELETE /api/books/:id => excluir um livro pelo ID
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
+    
     // Verificar se o livro existe
-    const book = await bookServiceServer.getBookById(params.id);
+    const book = await bookServiceServer.getBookById(id);
 
     if (!book) {
       return NextResponse.json(
@@ -216,7 +220,7 @@ export async function DELETE(
     }
 
     // Excluir o livro
-    await bookServiceServer.deleteBook(params.id);
+    await bookServiceServer.deleteBook(id);
 
     return NextResponse.json(
       {
