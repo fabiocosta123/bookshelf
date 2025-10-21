@@ -136,16 +136,17 @@ import { reviewServiceServer } from '@/lib/services/review-service-server';
 // GET /api/reviews/[id] - Buscar observação específica
 export async function GET(
   request: Request, 
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
 
-    const review = await reviewServiceServer.getReviewById(params.id);
+    const review = await reviewServiceServer.getReviewById(id);
 
     if (!review) {
       return NextResponse.json(
@@ -172,9 +173,10 @@ export async function GET(
 // PUT /api/reviews/[id] - Atualizar observação
 export async function PUT(
   request: Request, 
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.id) {
@@ -192,7 +194,7 @@ export async function PUT(
     }
 
     const review = await reviewServiceServer.updateReview(
-      params.id,
+      id,
       session.user.id,
       {
         content,
@@ -230,16 +232,17 @@ export async function PUT(
 // DELETE /api/reviews/[id] - Excluir observação
 export async function DELETE(
   request: Request, 
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
 
-    await reviewServiceServer.deleteReview(params.id, session.user.id);
+    await reviewServiceServer.deleteReview(id, session.user.id);
 
     return NextResponse.json(
       { message: 'Observação excluída com sucesso' },
