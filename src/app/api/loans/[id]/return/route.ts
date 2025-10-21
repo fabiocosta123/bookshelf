@@ -107,9 +107,11 @@ import { prisma } from "@/lib/prisma";
 
 export async function PATCH(
   request: Request, 
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
+    
     // valida sessão e tipa corretamente
     const rawSession = await getServerSession(authOptions as any);
     const session = rawSession as Session | null;
@@ -123,7 +125,6 @@ export async function PATCH(
       return NextResponse.json({ error: "Permissão negada" }, { status: 403 });
     }
 
-    const id = params.id;
     if (!id) {
       return NextResponse.json({ error: "Id do empréstimo não informado" }, { status: 400 });
     }
