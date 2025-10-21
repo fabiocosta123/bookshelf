@@ -250,8 +250,11 @@ interface BookRouteParams {
 }
 
 // GET /api/books/:id => buscar um livro pelo ID
-// CORREÇÃO: Removemos a tipagem { params: ... } do segundo argumento
-export async function GET(request: Request, { params }: { params: BookRouteParams }) {
+// A tipagem do segundo argumento é MINIMALISTA
+export async function GET(
+    request: Request, 
+    { params }: { params: BookRouteParams } // CORREÇÃO FINAL: Usando a interface BookRouteParams mais limpa
+) {
     try {
         const book = await bookServiceServer.getBookById(params.id);
 
@@ -273,8 +276,10 @@ export async function GET(request: Request, { params }: { params: BookRouteParam
 }
 
 // PUT /api/books/:id => atualizar um livro pelo ID
-// CORREÇÃO: Removemos a tipagem { params: ... } do segundo argumento
-export async function PUT(request: Request, { params }: { params: BookRouteParams }) {
+export async function PUT(
+    request: Request, 
+    { params }: { params: BookRouteParams } // CORREÇÃO FINAL
+) {
     try {
         const body = await request.json();
 
@@ -326,8 +331,10 @@ export async function PUT(request: Request, { params }: { params: BookRouteParam
 }
 
 // DELETE /api/books/:id => excluir um livro pelo ID
-// CORREÇÃO: Removemos a tipagem { params: ... } do segundo argumento
-export async function DELETE(request: Request, { params }: { params: BookRouteParams }) {
+export async function DELETE(
+    request: Request, 
+    { params }: { params: BookRouteParams } // CORREÇÃO FINAL
+) {
     try {
         const book = await bookServiceServer.getBookById(params.id);
 
