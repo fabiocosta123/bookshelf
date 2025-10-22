@@ -12,6 +12,7 @@ import {
 
 
 import { usePathname } from "next/navigation";
+import Link from "next/link";
 
 
 interface SideBar {
@@ -29,7 +30,7 @@ const baseMenuItems = [
 
 // Menu apenas para funcionários e admin
 const adminMenuItems = [
-  { icon: Users, label: "Usuários", href: "/users", roles: ["EMPLOYEE", "ADMIN"] },
+  { icon: Users, label: "Usuários", href: "/admin/users", roles: ["EMPLOYEE", "ADMIN"] },
   { icon: BarChart3, label: "Relatórios", href: "/reports", roles: ["EMPLOYEE", "ADMIN"] },
   { icon: Download, label: "Importar Livros", href: "/books/import", roles: ["EMPLOYEE", "ADMIN"] }, // ← NOVO ITEM
   { icon: Settings, label: "Configurações", href: "/settings", roles: ["EMPLOYEE", "ADMIN"] },
@@ -77,15 +78,22 @@ export function Sidebar({ isOpen, onClose, userRole }: SideBar) {
           <ul className="space-y-2">
             {menuItems.map((item) => {
               const Icon = item.icon;
+              const isActive = pathname === item.href;
+
               return (
-                <li key={item.href}>
-                  <a
+                <li key={item.href}>                 
+
+                  <Link
                     href={item.href}
-                    className="flex items-center p-2 text-sm rounded-md hover:bg-gray-100 transition-colors w-full"
-                  >
-                    <Icon className="h-4 w-4 mr-3" />
-                    {item.label}
-                  </a>
+                    className={`flex items-center p-2 text-sm rounded-md transition-colors w-full ${
+                      isActive
+                        ? "bg-blue-100 text-blue-700 font-medium" : "hover:bg-gray-100"
+                    }`}
+                    onClick={onClose}
+                    >
+                      <Icon className="h-4 w-4 mr-3" />
+                      {item.label}
+                    </Link>
                 </li>
               );
             })}
@@ -98,7 +106,9 @@ export function Sidebar({ isOpen, onClose, userRole }: SideBar) {
             <div className="font-semibold">Sistema Online</div>
             <div className="text-xs text-green-600">● Conectado</div>
             {userRole && (
-              <div className="text-xs text-blue-600 mt-1">Usuário: {userRole}</div>
+              <div className="text-xs text-blue-600 mt-1 capitalize">
+                {userRole === "ADMIN" ? "Administrador" :
+                userRole === "EMPLOYEE" ? "Funcionário" : "Cliente "}</div>
             )}
           </div>
         </div>
