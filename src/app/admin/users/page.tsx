@@ -101,7 +101,7 @@ export default function UsersAdminPage() {
   };
 
   const handleAddUser = () => {
-    toast.info("Funcionalidade de adicionar usuário em desenvolvimento");
+    toast.info("Novos usuários se cadastram via Google. Use a página de detalhes para promover usuários para Admin ou Funcionário.");
   };
 
   if (isLoading) {
