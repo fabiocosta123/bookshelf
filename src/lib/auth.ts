@@ -118,25 +118,33 @@ export const authOptions: NextAuthOptions = {
     },
 
     // Dentro de authOptions.callbacks
-async redirect(params: any) {
-  const { url, baseUrl, token, account } = params
-  // Se não houver token ainda, usa baseUrl
-  const role = (token as any)?.role ?? undefined;
+    // async redirect(params: any) {
+    //   const { url, baseUrl, token, account } = params
+    //   // Se não houver token ainda, usa baseUrl
+    //   const role = (token as any)?.role ?? undefined;
 
-  // Login via Google ou qualquer OAuth: role normalmente será CLIENT (default)
-  if (account?.provider === 'google') {
-    if (role === 'CLIENT') return `${baseUrl}/client/dashboard`;
-    return `${baseUrl}/dashboard`;
-  }
+    //   // Login via Google ou qualquer OAuth: role normalmente será CLIENT (default)
+    //   if (account?.provider === 'google') {
+    //     if (role === 'CLIENT') return `${baseUrl}/client/dashboard`;
+    //     return `${baseUrl}/dashboard`;
+    //   }
 
-  // Login via Credentials (admin/employee) — mantém destino admin por padrão
-  if (role === 'ADMIN' || role === 'EMPLOYEE') {
-    return `${baseUrl}/dashboard`;
-  }
+    //   // Login via Credentials (admin/employee) — mantém destino admin por padrão
+    //   if (role === 'ADMIN' || role === 'EMPLOYEE') {
+    //     return `${baseUrl}/dashboard`;
+    //   }
 
-  // fallback: mantém a URL pedida ou baseUrl
-  return url.startsWith(baseUrl) ? url : baseUrl;
-},
+    //   // fallback: mantém a URL pedida ou baseUrl
+    //   return url.startsWith(baseUrl) ? url : baseUrl;
+    // },
+
+    async redirect({ url, baseUrl }) {
+      // Permite redirecionamentos customizados
+      if (url.startsWith(baseUrl)) return url;
+
+      // Redirecionamento padrão para dashboard
+      return `${baseUrl}/dashboard`;
+    },
 
     async jwt({ token, user, account }) {
       if (user) {
@@ -151,19 +159,54 @@ async redirect(params: any) {
       return token;
     },
 
-    async signIn({ user, account }) {
-      if (account?.provider === "google" && user.email) {
-        const existingUser = await prisma.user.findUnique({
-          where: { email: user.email },
-          select: { status: true },
-        });
+    // async signIn({ user, account, profile }) {
+    //   if (account?.provider === "google" && user.email) {
+    //     const existingUser = await prisma.user.findUnique({
+    //       where: { email: user.email },
+    //       select: { status: true },
+    //     });
 
-        if (existingUser?.status === "SUSPENDED") {
-          return false;
+    //     if (existingUser?.status === "SUSPENDED") {
+    //       return false;
+    //     }
+    //   }
+
+    //   return true;
+    // },
+
+    async signIn({ user, account, profile }) {
+      try {
+        if (account?.provider === "google" && user.email) {
+          // Verifica se o usuário existe
+          const existingUser = await prisma.user.findUnique({
+            where: { email: user.email },
+            select: { id: true, status: true, role: true },
+          });
+
+          // Se usuário suspenso, bloqueia login
+          if (existingUser?.status === "SUSPENDED") {
+            return false;
+          }
+
+          // Se não existe, cria o usuário
+          if (!existingUser) {
+            await prisma.user.create({
+              data: {
+                email: user.email,
+                name: user.name || profile?.name || "Usuário Google",
+                image: user.image,
+                role: "CLIENT", // Default para novos usuários Google
+                status: "ACTIVE",
+              },
+            });
+          }
         }
-      }
 
-      return true;
+        return true;
+      } catch (error) {
+        console.error("Erro no signIn:", error);
+        return false;
+      }
     },
   },
 };
