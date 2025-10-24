@@ -61,7 +61,7 @@ export function MainLayout({ children }: MainLayoutProps) {
   // Se estiver autenticado, mostra o layout completo com header e sidebar
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header onMenuClick={() => setSidebarOpen(true)} user={user} />
+      <Header onMenuClick={() => setSidebarOpen(true)} />
 
       <div className="flex">
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} userRole={user?.role} />
