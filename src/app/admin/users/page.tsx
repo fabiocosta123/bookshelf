@@ -11,6 +11,8 @@ import {
   Download,
 } from "lucide-react";
 
+import { EditUserModal } from "@/components/admin/EditUserModal";
+
 interface User {
   id: string;
   name: string;
@@ -42,10 +44,14 @@ export default function UsersAdminPage() {
   
   const [users, setUsers] = useState<User[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
+
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
+
   const [statusFilter, setStatusFilter] = useState("");
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [editModalOpen, setEditModalOpen] = useState(false);
 
   // Redirecionar se não for admin
   useEffect(() => {
@@ -96,6 +102,15 @@ export default function UsersAdminPage() {
     }
   };
 
+  const handleEditClick = (user: User) => {
+    setSelectedUser(user);
+    setEditModalOpen(true);
+  }
+
+  const handleUserUpdated = () => {
+    loadUsers();
+    loadStats();
+  }
   const handleExport = () => {
     toast.info("Funcionalidade de exportação em desenvolvimento");
   };
@@ -116,10 +131,20 @@ export default function UsersAdminPage() {
     return null; // Será redirecionado pelo useEffect
   }
 
+
+
   return (
     <div className="container mx-auto p-6 space-y-6">
       {/* Toaster para notificações */}
       <Toaster position="top-right" richColors closeButton />
+
+      {/* Modal de Edição */}
+      <EditUserModal 
+        user={selectedUser}
+        open={editModalOpen}
+        onOpenChange={setEditModalOpen}
+        onUserUpdated={handleUserUpdated}
+      />
       
       {/* Cabeçalho */}
       <div className="flex justify-between items-center">
@@ -325,7 +350,7 @@ export default function UsersAdminPage() {
                         Ver detalhes
                       </button>
                       <button 
-                        onClick={() => toast.info("Funcionalidade de edição em desenvolvimento")}
+                        onClick={() => handleEditClick(user)}
                         className="text-gray-600 hover:text-gray-900 cursor-pointer"
                       >
                         Editar

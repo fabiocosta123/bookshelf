@@ -21,7 +21,9 @@ import {
   UserCheck,
   UserX,
 } from "lucide-react";
+
 import Link from "next/link";
+import { EditUserModal } from "@/components/admin/EditUserModal";
 
 interface UserDetails {
   id: string;
@@ -53,12 +55,26 @@ interface PageProps {
   params: Promise<{ id: string }>;
 }
 
+interface ModalUser {
+  id: string;
+  name: string;
+  email: string;
+  image?: string;
+  role: "CLIENT" | "ADMIN" | "EMPLOYEE";
+  status: "ACTIVE" | "INACTIVE" | "SUSPENDED";
+  phone?: string;
+  registration_number?: string;
+}
+
 export default function UserDetailsPage({ params }: PageProps) {
   const { isAdmin, isLoading } = useAuth();
   const router = useRouter();
 
   const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
   const [loading, setLoading] = useState(true);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<ModalUser | null>(null);
+
 
    // Função para formatar datas com segurança
   const formatDate = (dateString: string) => {
@@ -105,19 +121,58 @@ export default function UserDetailsPage({ params }: PageProps) {
     }
   };
 
-
+  // Edita Usuarios
   const handleEditUser = () => {
-    toast.info("Edição de usuário em desenvolvimento");
+   setEditModalOpen(true)
   };
 
-  const handleChangeRole = (newRole: string) => {
-    toast.info(`Alterando para ${newRole} - Funcionalidade em desenvolvimento`);
-  };
+  
+
+  const handleUserUpdated = () => {
+    loadUserDetails();
+    toast.success("Usuário atualizado com sucesso");
+  }
+
+
+// troca nivel de função
+ const handleChangeRole = (newRole: string) => {
+    if (userDetails) {
+      setSelectedUser({
+        id: userDetails.id,
+        name: userDetails.name,
+        email: userDetails.email,
+        image: userDetails.image,
+        role: userDetails.role,
+        status: userDetails.status,
+        phone: userDetails.phone,
+        registration_number: userDetails.registration_number
+      } as ModalUser);
+
+      // pré-preencher o modal com novo role
+      setTimeout(() => {
+        setEditModalOpen(true);
+      }, 100);
+    }
+  }
 
   const handleChangeStatus = (newStatus: string) => {
-    toast.info(
-      `Alterando status para ${newStatus} - Funcionalidade em desenvolvimento`
-    );
+    if (userDetails) {
+      setSelectedUser({
+        id: userDetails.id,
+        name: userDetails.name,
+        email: userDetails.email,
+        image: userDetails.image,
+        role: userDetails.role,
+        status: userDetails.status,
+        phone: userDetails.phone,
+        registration_number: userDetails.registration_number
+      } as ModalUser);
+      
+    // pré-preencher o modal com novo status
+      setTimeout(() => {
+      setEditModalOpen(true);
+    }, 100);
+    }
   };
 
   if (loading || isLoading) {
@@ -157,6 +212,23 @@ export default function UserDetailsPage({ params }: PageProps) {
   return (
     <div className="container mx-auto p-6 space-y-6">
       <Toaster position="top-right" richColors closeButton />
+
+      {/* modal de edição */}
+      <EditUserModal 
+        user={userDetails ? {
+          id: userDetails.id,
+          name: userDetails.name,
+          email: userDetails.email,
+          role: userDetails.role,
+          status: userDetails.status,
+          phone: userDetails.phone,
+          registration_number: userDetails.registration_number,
+          image: userDetails.image
+        } : null } 
+        open={editModalOpen}
+        onOpenChange={setEditModalOpen}
+        onUserUpdated={handleUserUpdated}
+      />
 
       {/* Cabeçalho */}
 

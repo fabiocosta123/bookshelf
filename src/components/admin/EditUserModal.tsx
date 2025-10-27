@@ -26,7 +26,7 @@ interface EditUserModalProps {
   onUserUpdated: () => void;
 }
 
-export function EditserModal({
+export function EditUserModal({
   user,
   open,
   onOpenChange,
