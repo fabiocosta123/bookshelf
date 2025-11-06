@@ -4,15 +4,15 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
 import { Toaster, toast } from "sonner";
-import { 
-  BarChart3, 
-  Download, 
-  Users, 
-  Book, 
-  ClipboardList, 
+import {
+  BarChart3,
+  Download,
+  Users,
+  Book,
+  ClipboardList,
   AlertTriangle,
   TrendingUp,
-  Calendar
+  Calendar,
 } from "lucide-react";
 
 interface ReportsData {
@@ -74,11 +74,9 @@ export default function ReportsPage() {
       if (!res.ok) throw new Error("Erro ao buscar dados");
       const json: ReportsData = await res.json();
       setData(json);
-
     } catch (error) {
       console.error("Erro ao carregar relatórios:", error);
       toast.error("Erro ao carregar dados dos relatórios");
-
     } finally {
       setLoading(false);
     }
@@ -105,37 +103,39 @@ export default function ReportsPage() {
       <div className="container mx-auto p-6">
         <div className="text-center py-12">
           <BarChart3 className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-4 text-lg font-medium text-gray-900">Erro ao carregar relatórios</h3>
+          <h3 className="mt-4 text-lg font-medium text-gray-900">
+            Erro ao carregar relatórios
+          </h3>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="px-4 py-6 space-y-6">
       <Toaster position="top-right" richColors closeButton />
-      
+
       {/* Cabeçalho */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-start">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Relatórios</h1>
-          <p className="text-gray-600 mt-2">
+          <h1 className="text-xl font-bold text-gray-900">Relatórios</h1>
+          <p className="text-gray-600 mt-1 text-sm">
             Análises e estatísticas do sistema BookShelf
           </p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-3">
           <select
             value={dateRange}
             onChange={(e) => setDateRange(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="month">Último mês</option>
             <option value="quarter">Último trimestre</option>
             <option value="year">Último ano</option>
           </select>
-          <button 
+          <button
             onClick={handleExport}
-            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors cursor-pointer"
+            className="flex items-center justify-center gap-2 px-3 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 transition"
           >
             <Download className="h-4 w-4" />
             Exportar
@@ -144,72 +144,85 @@ export default function ReportsPage() {
       </div>
 
       {/* Estatísticas Gerais */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        <div className="bg-white p-4 rounded-lg border shadow-sm">
-          <div className="flex items-center mb-2">
-            <Book className="h-5 w-5 text-blue-600 mr-2" />
-            <span className="font-medium">Total Livros</span>
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+        {[
+          {
+            label: "Total Livros",
+            value: data.generalStats.totalBooks,
+            icon: Book,
+            color: "text-blue-600",
+          },
+          {
+            label: "Total Usuários",
+            value: data.generalStats.totalUsers,
+            icon: Users,
+            color: "text-green-600",
+          },
+          {
+            label: "Empréstimos Ativos",
+            value: data.generalStats.activeLoans,
+            icon: ClipboardList,
+            color: "text-purple-600",
+          },
+          {
+            label: "Concluídos",
+            value: data.generalStats.completedLoans,
+            icon: TrendingUp,
+            color: "text-orange-600",
+          },
+          {
+            label: "Em Atraso",
+            value: data.generalStats.overdueLoans,
+            icon: AlertTriangle,
+            color: "text-red-600",
+          },
+          {
+            label: "Pendentes",
+            value: data.generalStats.pendingLoans,
+            icon: Calendar,
+            color: "text-yellow-600",
+          },
+        ].map((stat, idx) => (
+          <div key={idx} className="bg-white p-4 rounded-md border shadow-sm">
+            <div className="flex items-center mb-2">
+              <stat.icon className={`h-5 w-5 mr-2 ${stat.color}`} />
+              <span className="font-medium text-sm">{stat.label}</span>
+            </div>
+            <div className={`text-xl font-bold ${stat.color}`}>
+              {stat.value}
+            </div>
           </div>
-          <div className="text-2xl font-bold text-blue-600">{data.generalStats.totalBooks}</div>
-        </div>
-
-        <div className="bg-white p-4 rounded-lg border shadow-sm">
-          <div className="flex items-center mb-2">
-            <Users className="h-5 w-5 text-green-600 mr-2" />
-            <span className="font-medium">Total Usuários</span>
-          </div>
-          <div className="text-2xl font-bold text-green-600">{data.generalStats.totalUsers}</div>
-        </div>
-
-        <div className="bg-white p-4 rounded-lg border shadow-sm">
-          <div className="flex items-center mb-2">
-            <ClipboardList className="h-5 w-5 text-purple-600 mr-2" />
-            <span className="font-medium">Empréstimos Ativos</span>
-          </div>
-          <div className="text-2xl font-bold text-purple-600">{data.generalStats.activeLoans}</div>
-        </div>
-
-        <div className="bg-white p-4 rounded-lg border shadow-sm">
-          <div className="flex items-center mb-2">
-            <TrendingUp className="h-5 w-5 text-orange-600 mr-2" />
-            <span className="font-medium">Concluídos</span>
-          </div>
-          <div className="text-2xl font-bold text-orange-600">{data.generalStats.completedLoans}</div>
-        </div>
-
-        <div className="bg-white p-4 rounded-lg border shadow-sm">
-          <div className="flex items-center mb-2">
-            <AlertTriangle className="h-5 w-5 text-red-600 mr-2" />
-            <span className="font-medium">Em Atraso</span>
-          </div>
-          <div className="text-2xl font-bold text-red-600">{data.generalStats.overdueLoans}</div>
-        </div>
-
-        <div className="bg-white p-4 rounded-lg border shadow-sm">
-          <div className="flex items-center mb-2">
-            <Calendar className="h-5 w-5 text-yellow-600 mr-2" />
-            <span className="font-medium">Pendentes</span>
-          </div>
-          <div className="text-2xl font-bold text-yellow-600">{data.generalStats.pendingLoans}</div>
-        </div>
+        ))}
       </div>
 
+      {/* Livros e Usuários */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Livros Mais Populares */}
-        <div className="bg-white rounded-lg border shadow-sm p-6">
-          <h2 className="text-xl font-semibold mb-4">Livros Mais Emprestados</h2>
+        {/* Livros Mais Emprestados */}
+        <div className="bg-white rounded-md border shadow-sm p-4">
+          <h2 className="text-lg font-semibold mb-4">
+            Livros Mais Emprestados
+          </h2>
           <div className="space-y-3">
-            {data.popularBooks.map((book, index) => (
-              <div key={book.id} className="flex items-center justify-between p-3 border rounded-lg">
+            {data.popularBooks.map((book) => (
+              <div
+                key={book.id}
+                className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 border rounded-md"
+              >
                 <div className="flex-1">
-                  <div className="font-medium">{book.title}</div>
-                  <div className="text-sm text-gray-600">{book.author}</div>
+                  <div className="font-medium text-sm">{book.title}</div>
+                  <div className="text-xs text-gray-600">{book.author}</div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-sm text-gray-600">{book.loanCount} empréstimos</span>
-                  <span className={`px-2 py-1 text-xs rounded-full ${
-                    book.available ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
-                  }`}>
+                <div className="flex items-center gap-2 text-xs">
+                  <span className="text-gray-600">
+                    {book.loanCount} empréstimos
+                  </span>
+                  <span
+                    className={`px-2 py-1 rounded-full ${
+                      book.available
+                        ? "bg-green-100 text-green-800"
+                        : "bg-red-100 text-red-800"
+                    }`}
+                  >
                     {book.available ? "Disponível" : "Indisponível"}
                   </span>
                 </div>
@@ -219,24 +232,36 @@ export default function ReportsPage() {
         </div>
 
         {/* Usuários Mais Ativos */}
-        <div className="bg-white rounded-lg border shadow-sm p-6">
-          <h2 className="text-xl font-semibold mb-4">Usuários Mais Ativos</h2>
+        <div className="bg-white rounded-md border shadow-sm p-4">
+          <h2 className="text-lg font-semibold mb-4">Usuários Mais Ativos</h2>
           <div className="space-y-3">
             {data.activeUsers.map((user) => (
-              <div key={user.id} className="flex items-center justify-between p-3 border rounded-lg">
+              <div
+                key={user.id}
+                className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 border rounded-md"
+              >
                 <div className="flex-1">
-                  <div className="font-medium">{user.name}</div>
-                  <div className="text-sm text-gray-600">{user.email}</div>
+                  <div className="font-medium text-sm">{user.name}</div>
+                  <div className="text-xs text-gray-600">{user.email}</div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-sm text-gray-600">{user.loanCount} empréstimos</span>
-                  <span className={`px-2 py-1 text-xs rounded-full ${
-                    user.role === "ADMIN" ? "bg-purple-100 text-purple-800" :
-                    user.role === "EMPLOYEE" ? "bg-blue-100 text-blue-800" :
-                    "bg-green-100 text-green-800"
-                  }`}>
-                    {user.role === "ADMIN" ? "Admin" :
-                     user.role === "EMPLOYEE" ? "Funcionário" : "Cliente"}
+                <div className="flex items-center gap-2 text-xs">
+                  <span className="text-gray-600">
+                    {user.loanCount} empréstimos
+                  </span>
+                  <span
+                    className={`px-2 py-1 rounded-full ${
+                      user.role === "ADMIN"
+                        ? "bg-purple-100 text-purple-800"
+                        : user.role === "EMPLOYEE"
+                        ? "bg-blue-100 text-blue-800"
+                        : "bg-green-100 text-green-800"
+                    }`}
+                  >
+                    {user.role === "ADMIN"
+                      ? "Admin"
+                      : user.role === "EMPLOYEE"
+                      ? "Funcionário"
+                      : "Cliente"}
                   </span>
                 </div>
               </div>
@@ -246,24 +271,35 @@ export default function ReportsPage() {
       </div>
 
       {/* Crescimento Mensal */}
-      <div className="bg-white rounded-lg border shadow-sm p-6">
-        <h2 className="text-xl font-semibold mb-4">Crescimento Mensal</h2>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="bg-white rounded-md border shadow-sm p-4">
+        <h2 className="text-lg font-semibold mb-4">Crescimento Mensal</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           {data.monthlyGrowth.map((month) => (
-            <div key={month.month} className="text-center p-4 border rounded-lg">
-              <div className="font-semibold text-lg mb-2">{month.month.toUpperCase()}</div>
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
+            <div
+              key={month.month}
+              className="text-center p-4 border rounded-md"
+            >
+              <div className="font-semibold text-base mb-2">
+                {month.month.toUpperCase()}
+              </div>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
                   <span>Novos usuários:</span>
-                  <span className="font-medium text-green-600">+{month.newUsers}</span>
+                  <span className="font-medium text-green-600">
+                    +{month.newUsers}
+                  </span>
                 </div>
-                <div className="flex justify-between text-sm">
+                <div className="flex justify-between">
                   <span>Novos empréstimos:</span>
-                  <span className="font-medium text-blue-600">+{month.newLoans}</span>
+                  <span className="font-medium text-blue-600">
+                    +{month.newLoans}
+                  </span>
                 </div>
-                <div className="flex justify-between text-sm">
+                <div className="flex justify-between">
                   <span>Devoluções:</span>
-                  <span className="font-medium text-orange-600">{month.returns}</span>
+                  <span className="font-medium text-orange-600">
+                    {month.returns}
+                  </span>
                 </div>
               </div>
             </div>
@@ -272,14 +308,17 @@ export default function ReportsPage() {
       </div>
 
       {/* Mensagem Informativa */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-        <div className="flex items-start">
-          <BarChart3 className="h-6 w-6 text-blue-600 mr-3 mt-1" />
+      <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
+        <div className="flex items-start gap-3">
+          <BarChart3 className="h-6 w-6 text-blue-600 mt-1" />
           <div>
-            <h3 className="font-semibold text-blue-900">Relatórios em Tempo Real</h3>
-            <p className="text-blue-700 mt-1">
-              Os dados são atualizados automaticamente. Use os filtros para analisar períodos específicos 
-              e exporte os relatórios para compartilhar com a equipe.
+            <h3 className="font-semibold text-blue-900 text-sm">
+              Relatórios em Tempo Real
+            </h3>
+            <p className="text-blue-700 mt-1 text-sm">
+              Os dados são atualizados automaticamente. Use os filtros para
+              analisar períodos específicos e exporte os relatórios para
+              compartilhar com a equipe.
             </p>
           </div>
         </div>
