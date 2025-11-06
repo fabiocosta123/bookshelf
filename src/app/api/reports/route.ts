@@ -86,7 +86,7 @@ export async function GET(req: NextRequest) {
     });
 
     users.forEach((user) => {
-      const key = format(user.createdAt, "MMM", { locale: ptBR });
+      const key = format(user.createdAt, "MMM", { locale: ptBR }).slice(0, 3);
       const stats = monthsMap.get(key) ?? { newUsers: 0, newLoans: 0, returns: 0 };
       stats.newUsers += 1;
       monthsMap.set(key, stats);

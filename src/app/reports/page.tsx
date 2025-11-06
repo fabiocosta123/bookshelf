@@ -69,44 +69,16 @@ export default function ReportsPage() {
   const loadReportsData = async () => {
     try {
       setLoading(true);
-      // Por enquanto, vamos mockar os dados. Depois criamos a API específica
-      const mockData: ReportsData = {
-        generalStats: {
-          totalBooks: 245,
-          totalUsers: 156,
-          activeLoans: 23,
-          completedLoans: 489,
-          overdueLoans: 5,
-          pendingLoans: 12
-        },
-        popularBooks: [
-          { id: "1", title: "O Hobbit", author: "J.R.R. Tolkien", loanCount: 15, available: true },
-          { id: "2", title: "1984", author: "George Orwell", loanCount: 12, available: false },
-          { id: "3", title: "Dom Casmurro", author: "Machado de Assis", loanCount: 10, available: true },
-          { id: "4", title: "A Revolução dos Bichos", author: "George Orwell", loanCount: 9, available: true },
-          { id: "5", title: "Harry Potter e a Pedra Filosofal", author: "J.K. Rowling", loanCount: 8, available: true }
-        ],
-        activeUsers: [
-          { id: "1", name: "João Silva", email: "joao@email.com", loanCount: 8, role: "CLIENT" },
-          { id: "2", name: "Maria Santos", email: "maria@email.com", loanCount: 6, role: "CLIENT" },
-          { id: "3", name: "Pedro Oliveira", email: "pedro@email.com", loanCount: 5, role: "CLIENT" },
-          { id: "4", name: "Ana Costa", email: "ana@email.com", loanCount: 4, role: "EMPLOYEE" },
-          { id: "5", name: "Carlos Lima", email: "carlos@email.com", loanCount: 4, role: "CLIENT" }
-        ],
-        monthlyGrowth: [
-          { month: "Jan", newUsers: 15, newLoans: 45, returns: 38 },
-          { month: "Fev", newUsers: 12, newLoans: 52, returns: 45 },
-          { month: "Mar", newUsers: 18, newLoans: 61, returns: 52 },
-          { month: "Abr", newUsers: 14, newLoans: 58, returns: 49 },
-          { month: "Mai", newUsers: 16, newLoans: 67, returns: 55 },
-          { month: "Jun", newUsers: 20, newLoans: 72, returns: 60 }
-        ]
-      };
+      const res = await fetch(`/api/reports?range=${dateRange}`);
 
-      setData(mockData);
+      if (!res.ok) throw new Error("Erro ao buscar dados");
+      const json: ReportsData = await res.json();
+      setData(json);
+
     } catch (error) {
       console.error("Erro ao carregar relatórios:", error);
       toast.error("Erro ao carregar dados dos relatórios");
+
     } finally {
       setLoading(false);
     }
@@ -163,7 +135,7 @@ export default function ReportsPage() {
           </select>
           <button 
             onClick={handleExport}
-            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors cursor-pointer"
           >
             <Download className="h-4 w-4" />
             Exportar
@@ -279,7 +251,7 @@ export default function ReportsPage() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {data.monthlyGrowth.map((month) => (
             <div key={month.month} className="text-center p-4 border rounded-lg">
-              <div className="font-semibold text-lg mb-2">{month.month}</div>
+              <div className="font-semibold text-lg mb-2">{month.month.toUpperCase()}</div>
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span>Novos usuários:</span>
