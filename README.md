@@ -2,6 +2,9 @@
 🎯 Sobre o Projeto
 Sistema completo para gerenciamento de biblioteca pessoal ou institucional, com controle de livros, usuários, empréstimos e notificações.
 
+## Sistema em Desenvolvimento, acesse pelo link abaixo:
+https://bookshelf-chi-five.vercel.app/auth/login
+
 🚀 Tecnologias Utilizadas
 Frontend
 Next.js 15 com App Router
