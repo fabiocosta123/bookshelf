@@ -120,7 +120,7 @@ export default function ReportsPage() {
         <div>
           <h1 className="text-xl font-bold text-gray-900">Relatórios</h1>
           <p className="text-gray-600 mt-1 text-sm">
-            Análises e estatísticas do sistema BookShelf
+            Análises e estatísticas 
           </p>
         </div>
         <div className="flex flex-col sm:flex-row gap-3">

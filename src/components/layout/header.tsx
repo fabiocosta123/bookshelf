@@ -52,9 +52,13 @@ export function Header({ onMenuClick }: HeaderProps) {
             >
               <Menu className="h-5 w-5" />
             </Button>
-            <div className="flex items-center">
-              <span className="text-2xl mr-2">📚</span>
-              <h1 className="text-xl font-bold text-gray-900">BookShelf</h1>
+            <div className="flex items-center gap-2">
+              <img
+                src="/logoBook.svg"
+                alt="Logo Mente Aberta"
+                className="h-8 w-auto object-contain"
+              />
+              <h1 className="text-xl font-bold text-gray-900">MENTE ABERTA</h1>
             </div>
           </div>
 
@@ -75,13 +79,16 @@ export function Header({ onMenuClick }: HeaderProps) {
               >
                 {user?.image ? (
                   <img
-                    src={user.image}
-                    alt="User Avatar"
+                    src={user.image || "/default-avatar.jpg"}
+                    alt={user.name || "Avatar"}
                     className="h-8 w-8 rounded-full object-cover"
+                    onError={(e) =>
+                      (e.currentTarget.src = "/default-avatar.jpg")
+                    }
                   />
                 ) : (
                   <div className="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center">
-                    <User className="h-5 w-5 cursor-pointer" />
+                    <User className="h-5 w-5 text-blue-600" />
                   </div>
                 )}
               </Button>
@@ -98,12 +105,14 @@ export function Header({ onMenuClick }: HeaderProps) {
                       {user?.email || "email não disponível"}
                     </p>
                     <p className="text-xs text-blue-600 mt-1 capitalize">
-                      {user?.role === "ADMIN" ? "Administrador" :
-                       user?.role === "EMPLOYEE" ? "Funcionário" : "Cliente"}
+                      {user?.role === "ADMIN"
+                        ? "Administrador"
+                        : user?.role === "EMPLOYEE"
+                        ? "Funcionário"
+                        : "Cliente"}
                     </p>
-
                   </div>
-                  
+
                   {/* opções do menu */}
                   <div className="py-1">
                     <button
@@ -116,7 +125,7 @@ export function Header({ onMenuClick }: HeaderProps) {
                       <User className="h-4 w-4 mr-3" />
                       Meu Perfil
                     </button>
-                    
+
                     <button
                       onClick={() => {
                         setIsDropdownOpen(false);
@@ -128,7 +137,7 @@ export function Header({ onMenuClick }: HeaderProps) {
                       Configurações
                     </button>
                   </div>
-                  
+
                   {/* logout */}
                   <div className="border-t border-gray-100 py-1">
                     <button
@@ -142,7 +151,6 @@ export function Header({ onMenuClick }: HeaderProps) {
                 </div>
               )}
             </div>
-
           </div>
         </div>
       </div>

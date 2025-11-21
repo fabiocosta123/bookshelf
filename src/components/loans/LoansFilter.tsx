@@ -3,7 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Search, XCircle } from "lucide-react";
+import { XCircle } from "lucide-react";
 
 const STATUS_OPTIONS = [
   { value: "", label: "Todos" },

@@ -8,8 +8,8 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'BookShelf - Sua Biblioteca Digital',
-  description: 'Sistema moderno para gerenciamento de biblioteca pessoal',
+  title: 'Mente Aberta',
+  description: 'Sistema moderno para gerenciamento de biblioteca',
 };
 
 export default function RootLayout({

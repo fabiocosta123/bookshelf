@@ -303,9 +303,9 @@ export default function UsersAdminPage() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <img
-                          src={user.image}
+                          src={user.image || "/default-avatar.jpg"}
                           alt={user.name}
-                          className="h-10 w-10 rounded-full mr-3"
+                          className="h-10 w-auto max-w-[40px] rounded-full object-cover mr-3"
                         />
                         <div>
                           <div className="font-medium text-gray-900">{user.name}</div>

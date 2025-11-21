@@ -66,7 +66,7 @@ export function MainLayout({ children }: MainLayoutProps) {
       <div className="flex">
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} userRole={user?.role} />
 
-        {/* Main content: trocar <main> por <div> para evitar mains aninhados */}
+        
         <div className="flex-1 lg:ml-0 min-w-0">
           <div className="p-4 sm:p-6 lg:p-8">{children}</div>
         </div>

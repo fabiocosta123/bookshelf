@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import {
   Home,
@@ -7,13 +7,11 @@ import {
   ClipboardList,
   BarChart3,
   Settings,
-  Download
+  Download,
 } from "lucide-react";
-
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-
 
 interface SideBar {
   isOpen: boolean;
@@ -23,28 +21,65 @@ interface SideBar {
 
 // Menu base - Todos podem ver
 const baseMenuItems = [
-  { icon: Home, label: "Dashboard", href: "/dashboard", roles: ["CLIENT", "EMPLOYEE", "ADMIN"]},
-  { icon: Book, label: "Biblioteca", href: "/books", roles: ["CLIENT", "EMPLOYEE", "ADMIN"] },
-  { icon: ClipboardList, label: "Empréstimos", href: "/loans", roles: ["CLIENT", "EMPLOYEE", "ADMIN"] },
-]
+  {
+    icon: Home,
+    label: "Dashboard",
+    href: "/dashboard",
+    roles: ["CLIENT", "EMPLOYEE", "ADMIN"],
+  },
+  {
+    icon: Book,
+    label: "Biblioteca",
+    href: "/books",
+    roles: ["CLIENT", "EMPLOYEE", "ADMIN"],
+  },
+  {
+    icon: ClipboardList,
+    label: "Empréstimos",
+    href: "/loans",
+    roles: ["CLIENT", "EMPLOYEE", "ADMIN"],
+  },
+];
 
 // Menu apenas para funcionários e admin
 const adminMenuItems = [
-  { icon: Users, label: "Usuários", href: "/admin/users", roles: ["EMPLOYEE", "ADMIN"] },
-  { icon: BarChart3, label: "Relatórios", href: "/reports", roles: ["EMPLOYEE", "ADMIN"] },
-  { icon: Download, label: "Importar Livros", href: "/books/import", roles: ["EMPLOYEE", "ADMIN"] }, // ← NOVO ITEM
-  { icon: Settings, label: "Configurações", href: "/settings", roles: ["EMPLOYEE", "ADMIN"] },
+  {
+    icon: Users,
+    label: "Usuários",
+    href: "/admin/users",
+    roles: ["EMPLOYEE", "ADMIN"],
+  },
+  {
+    icon: BarChart3,
+    label: "Relatórios",
+    href: "/reports",
+    roles: ["EMPLOYEE", "ADMIN"],
+  },
+  {
+    icon: Download,
+    label: "Importar Livros",
+    href: "/books/import",
+    roles: ["EMPLOYEE", "ADMIN"],
+  }, // ← NOVO ITEM
+  {
+    icon: Settings,
+    label: "Configurações",
+    href: "/settings",
+    roles: ["EMPLOYEE", "ADMIN"],
+  },
 ];
-
-
 
 export function Sidebar({ isOpen, onClose, userRole }: SideBar) {
   const pathname = usePathname();
 
-   // Filtra os itens do menu baseado no role do usuário
+  // Filtra os itens do menu baseado no role do usuário
   const menuItems = [
-    ...baseMenuItems.filter(item => item.roles.includes(userRole || "CLIENT")),
-    ...adminMenuItems.filter(item => item.roles.includes(userRole || "CLIENT"))
+    ...baseMenuItems.filter((item) =>
+      item.roles.includes(userRole || "CLIENT")
+    ),
+    ...adminMenuItems.filter((item) =>
+      item.roles.includes(userRole || "CLIENT")
+    ),
   ];
 
   return (
@@ -67,9 +102,15 @@ export function Sidebar({ isOpen, onClose, userRole }: SideBar) {
       >
         {/* Logo area */}
         <div className="flex items-center justify-center h-16 border-b border-gray-200">
-          <div className="flex items-center">
-            <span className="text-2xl mr-2">📚</span>
-            <span className="text-lg font-semibold">BookShelf</span>
+          <div className="flex items-center gap-2">
+            <img
+              src="/logoBook.svg"
+              alt="Logo Mente Aberta"
+              className="h-8 w-auto object-contain"
+            />
+            <span className="text-lg font-semibold text-gray-900">
+              MENTE ABERTA
+            </span>
           </div>
         </div>
 
@@ -81,19 +122,19 @@ export function Sidebar({ isOpen, onClose, userRole }: SideBar) {
               const isActive = pathname === item.href;
 
               return (
-                <li key={item.href}>                 
-
+                <li key={item.href}>
                   <Link
                     href={item.href}
                     className={`flex items-center p-2 text-sm rounded-md transition-colors w-full ${
                       isActive
-                        ? "bg-blue-100 text-blue-700 font-medium" : "hover:bg-gray-100"
+                        ? "bg-blue-100 text-blue-700 font-medium"
+                        : "hover:bg-gray-100"
                     }`}
                     onClick={onClose}
-                    >
-                      <Icon className="h-4 w-4 mr-3" />
-                      {item.label}
-                    </Link>
+                  >
+                    <Icon className="h-4 w-4 mr-3" />
+                    {item.label}
+                  </Link>
                 </li>
               );
             })}
@@ -107,8 +148,12 @@ export function Sidebar({ isOpen, onClose, userRole }: SideBar) {
             <div className="text-xs text-green-600">● Conectado</div>
             {userRole && (
               <div className="text-xs text-blue-600 mt-1 capitalize">
-                {userRole === "ADMIN" ? "Administrador" :
-                userRole === "EMPLOYEE" ? "Funcionário" : "Cliente "}</div>
+                {userRole === "ADMIN"
+                  ? "Administrador"
+                  : userRole === "EMPLOYEE"
+                  ? "Funcionário"
+                  : "Cliente "}
+              </div>
             )}
           </div>
         </div>
